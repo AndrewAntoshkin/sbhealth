@@ -560,6 +560,7 @@
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
     grid-template-areas:
       'top top'
+      'hero next'
       'hero att'
       'read rest'
       'fine fine';
@@ -571,6 +572,7 @@
   .hm-hero { grid-area: hero; min-height: 420px; padding: 30px 28px 28px; }
   .hm-hero-copy { min-height: 360px; }
   .hm-hero > img { right: -22%; width: 86%; }
+  .hm-next { grid-area: next; }
   .hm-att { grid-area: att; }
   .hm-read { grid-area: read; }
   .hm-rest { grid-area: rest; }

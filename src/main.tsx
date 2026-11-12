@@ -5,6 +5,7 @@ import { App } from './App'
 import './styles.css'
 import './theme.css'
 import './screens.css'
+import './flow.css'
 import { registerSW } from 'virtual:pwa-register'
 
 // Service worker качает весь кэш (≈4 МБ) — не отбираем у модели канал: стартуем, когда тело уже на экране.

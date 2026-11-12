@@ -1,8 +1,12 @@
 import { useCallback, useRef, useState } from 'react'
-import { ArrowRight, ArrowUpRight, Info } from '@phosphor-icons/react'
+import { ArrowRight, ArrowUpRight, BellSimple, CalendarCheck, ChatCircleText, Info, VideoCamera, Buildings } from '@phosphor-icons/react'
+import { Booking } from '../Booking'
 import { IndexSheet } from '../IndexSheet'
+import { Notifications } from '../Notifications'
+import { DOCTOR, DURATION, MODE_LABEL, nextAppointment, unreadNotifs, useCore, type Appointment } from '../store'
+import { cap, fmtDay, fmtDayLong, fmtTime, inDays } from '../time'
 import { MESH_COLOR, RISK_SOFT, levelOf, systemById, type SystemId } from '../data/systems'
-import { Fine, INDEX, Mark, ORDER, ORGAN_TITLE, RiskTag, TONE, thumb } from '../shared'
+import { Fine, INDEX, ORDER, ORGAN_TITLE, RiskTag, TONE, thumb } from '../shared'
 import { Dock, type DockTab } from './Dock'
 
 const HERO = `${import.meta.env.BASE_URL}hero.webp`
@@ -31,9 +35,21 @@ function today() {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
-export function Home({ onAtlas }: { onAtlas: (id?: SystemId) => void }) {
-  const [indexOpen, setIndexOpen] = useState(false)
+export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; go: (to: string) => void; open?: 'index' | 'notifications' }) {
+  const [indexOpen, setIndexOpen] = useState(open === 'index')
+  const [notifOpen, setNotifOpen] = useState(open === 'notifications')
+  const [booking, setBooking] = useState<{ systemId: SystemId; replace?: Appointment } | null>(null)
+  const core = useCore()
+  const appt = nextAppointment(core.appts)
+  const unread = unreadNotifs(core)
+  const overlay = indexOpen || notifOpen || booking !== null
+
   const opener = useRef<HTMLElement | null>(null)
+
+  const clearOpen = () => {
+    // адрес вида #/home/index больше не нужен — не плодим записи в истории
+    if (open) window.history.replaceState(null, '', '#/home')
+  }
 
   const openIndex = useCallback((from: HTMLElement | null) => {
     opener.current = from
@@ -41,25 +57,44 @@ export function Home({ onAtlas }: { onAtlas: (id?: SystemId) => void }) {
   }, [])
   const closeIndex = useCallback(() => {
     setIndexOpen(false)
+    clearOpen()
     // вернуть фокус после того, как фон перестанет быть inert
     requestAnimationFrame(() => opener.current?.focus({ preventScroll: true }))
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   const onTab = (tab: DockTab, el: HTMLElement) => {
     if (tab === 'atlas') onAtlas()
+    if (tab === 'messages') go('#/messages')
     if (tab === 'index') openIndex(el)
   }
 
+  const top = ATTENTION[0]
+  const topLevel = levelOf(top.risk)
+  const apptSystem = appt ? systemById(appt.systemId) : null
+
   return (
     <>
-      <main className="screen home" inert={indexOpen || undefined}>
+      <main className="screen home" inert={overlay || undefined}>
         <div className="hm-wrap">
           <header className="hm-top">
             <div>
               <p>{today()}</p>
               <h1>{greeting()}</h1>
             </div>
-            <Mark />
+            <button
+              className="hm-bell"
+              type="button"
+              aria-label={unread ? `Уведомления, новых: ${unread}` : 'Уведомления'}
+              aria-haspopup="dialog"
+              onClick={(event) => {
+                opener.current = event.currentTarget
+                setNotifOpen(true)
+              }}
+            >
+              <BellSimple size={24} weight="duotone" aria-hidden="true" />
+              {unread > 0 && <em aria-hidden="true">{unread}</em>}
+            </button>
           </header>
 
           <section className="hm-hero" aria-label="Индекс здоровья">
@@ -88,6 +123,51 @@ export function Home({ onAtlas }: { onAtlas: (id?: SystemId) => void }) {
               </div>
             </div>
           </section>
+
+          {appt && apptSystem ? (
+            <section className="hm-next is-booked" aria-labelledby="hm-next">
+              <p className="hm-kicker" id="hm-next">
+                <CalendarCheck size={16} weight="fill" aria-hidden="true" />
+                Ближайшая запись · {inDays(appt.start)}
+              </p>
+              <p className="nx-when">
+                <b>{cap(fmtDay(appt.start).split(',')[1].trim())}</b>
+                <span>{fmtTime(appt.start)}</span>
+              </p>
+              <p className="nx-line">
+                {cap(fmtDayLong(appt.start).split(',')[0])} · {DOCTOR.name}, терапевт
+              </p>
+              <p className="nx-meta">
+                {appt.mode === 'video' ? <VideoCamera size={16} weight="duotone" aria-hidden="true" /> : <Buildings size={16} weight="duotone" aria-hidden="true" />}
+                {MODE_LABEL[appt.mode]}, {DURATION[appt.mode]} мин · тема «{ORGAN_TITLE[appt.systemId]}»
+              </p>
+              <div className="nx-actions">
+                <button type="button" className="nx-btn is-dark" onClick={() => go(`#/messages/${DOCTOR.id}`)}>
+                  <ChatCircleText size={18} weight="fill" aria-hidden="true" />
+                  Написать врачу
+                </button>
+                <button type="button" className="nx-btn" onClick={() => setBooking({ systemId: appt.systemId, replace: appt })}>
+                  Перенести
+                </button>
+              </div>
+            </section>
+          ) : (
+            <section className="hm-next" aria-labelledby="hm-next" style={{ ['--soft' as string]: RISK_SOFT[topLevel], ['--c' as string]: MESH_COLOR[topLevel] }}>
+              <img className="nx-thumb" src={thumb(top.id)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false} />
+              <p className="hm-kicker" id="hm-next">Следующий шаг</p>
+              <h2 className="nx-title">Запишитесь к терапевту</h2>
+              <p className="nx-text">Самая заметная зона в атласе — «{ORGAN_TITLE[top.id]}». Приём займёт 30 минут, время выберете сами.</p>
+              <div className="nx-actions">
+                <button type="button" className="nx-btn is-dark" onClick={() => setBooking({ systemId: top.id })}>
+                  Записаться
+                  <ArrowRight size={18} weight="bold" aria-hidden="true" />
+                </button>
+                <button type="button" className="nx-btn" onClick={() => onAtlas(top.id)}>
+                  Смотреть орган
+                </button>
+              </div>
+            </section>
+          )}
 
           <section className="hm-sec hm-att" aria-labelledby="hm-att">
             <div className="hm-head">
@@ -172,7 +252,7 @@ export function Home({ onAtlas }: { onAtlas: (id?: SystemId) => void }) {
         </div>
       </main>
 
-      <div inert={indexOpen || undefined}>
+      <div inert={overlay || undefined}>
         <Dock active="home" onGo={onTab} />
       </div>
 
@@ -182,6 +262,31 @@ export function Home({ onAtlas }: { onAtlas: (id?: SystemId) => void }) {
           onSelect={(id) => {
             setIndexOpen(false)
             onAtlas(id)
+          }}
+        />
+      )}
+
+      {notifOpen && (
+        <Notifications
+          onClose={() => {
+            setNotifOpen(false)
+            clearOpen()
+          }}
+          onGo={(to) => {
+            setNotifOpen(false)
+            go(to)
+          }}
+        />
+      )}
+
+      {booking && (
+        <Booking
+          systemId={booking.systemId}
+          replace={booking.replace}
+          onClose={() => setBooking(null)}
+          onChat={() => {
+            setBooking(null)
+            go(`#/messages/${DOCTOR.id}`)
           }}
         />
       )}

@@ -9,7 +9,10 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react'
-import { ArrowCounterClockwise, ArrowRight, CaretLeft } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowRight, CalendarCheck, CaretLeft } from '@phosphor-icons/react'
+import { Booking } from '../Booking'
+import { DOCTOR, MODE_LABEL, cancelAppointment, useCore, type Appointment } from '../store'
+import { fmtDay, fmtTime, inDays } from '../time'
 import { IndexSheet } from '../IndexSheet'
 import {
   MESH_COLOR,
@@ -31,7 +34,8 @@ const BodyCanvas = lazy(() => import('../scene/BodyCanvas').then((m) => ({ defau
 const POSTER = `${import.meta.env.BASE_URL}poster.webp`
 
 
-export function Atlas({ initial, onHome }: { initial: SystemId | null; onHome: () => void }) {
+export function Atlas({ initial, onHome, go }: { initial: SystemId | null; onHome: () => void; go: (to: string) => void }) {
+  const [booking, setBooking] = useState<{ systemId: SystemId; replace?: Appointment } | null>(null)
   const [selected, setSelected] = useState<SystemId | null>(initial)
   const [resetSignal, setResetSignal] = useState(0)
   const [peek, setPeek] = useState(0)
@@ -159,6 +163,7 @@ export function Atlas({ initial, onHome }: { initial: SystemId | null; onHome: (
                       level={level}
                       backLabel="Ко всему телу"
                       onBack={() => setSelected(null)}
+                      onBook={(replace) => setBooking({ systemId: system.id, replace })}
                       withSummary
                       head
                     />
@@ -257,6 +262,7 @@ export function Atlas({ initial, onHome }: { initial: SystemId | null; onHome: (
                     level={level}
                     backLabel="Все системы"
                     onBack={() => setSelected(null)}
+                    onBook={(replace) => setBooking({ systemId: system.id, replace })}
                     withSummary
                   />
                 </>
@@ -275,6 +281,18 @@ export function Atlas({ initial, onHome }: { initial: SystemId | null; onHome: (
           </section>
         )}
       </div>
+
+      {booking && (
+        <Booking
+          systemId={booking.systemId}
+          replace={booking.replace}
+          onClose={() => setBooking(null)}
+          onChat={() => {
+            setBooking(null)
+            go(`#/messages/${DOCTOR.id}`)
+          }}
+        />
+      )}
 
       {scoreOpen && (
         <IndexSheet
@@ -318,6 +336,7 @@ function OrganDetail({
   level,
   backLabel,
   onBack,
+  onBook,
   withSummary = false,
   head = false,
 }: {
@@ -325,10 +344,13 @@ function OrganDetail({
   level: RiskLevel
   backLabel: string
   onBack: () => void
+  onBook: (replace?: Appointment) => void
   withSummary?: boolean
   head?: boolean
 }) {
-  const [asked, setAsked] = useState(false)
+  const { appts } = useCore()
+  const [cancelling, setCancelling] = useState(false)
+  const appt = appts.find((a) => a.systemId === system.id && a.status === 'booked' && a.start > Date.now() - 30 * 60_000)
   const [active, setActive] = useState(0)
   useEffect(() => {
     // шторка свёрнута (visibility: hidden) — картинку подгружаем и декодируем заранее
@@ -414,16 +436,42 @@ function OrganDetail({
         <p>{system.advice}</p>
       </section>
 
-      {asked ? (
-        <div className="dx-note">
-          <p>Это демо: запись не создаётся. В продукте здесь открылась бы консультация терапевта.</p>
-          <button className="text-btn" type="button" onClick={() => setAsked(false)}>
-            Понятно
-          </button>
-        </div>
+      {appt ? (
+        <section className="dx-appt" aria-label="Ваша запись">
+          <p className="dx-appt-k">
+            <CalendarCheck size={16} weight="fill" aria-hidden="true" />
+            Вы записаны · {inDays(appt.start)}
+          </p>
+          <p className="dx-appt-when">
+            <b>{fmtDay(appt.start)}</b>
+            <span>{fmtTime(appt.start)}</span>
+          </p>
+          <p className="dx-appt-sub">
+            {DOCTOR.name} · {MODE_LABEL[appt.mode].toLowerCase()}
+          </p>
+          {cancelling ? (
+            <div className="dx-appt-actions" role="group" aria-label="Отменить запись?">
+              <button className="nx-btn is-dark" type="button" onClick={() => cancelAppointment(appt.id)}>
+                Да, отменить
+              </button>
+              <button className="nx-btn" type="button" onClick={() => setCancelling(false)}>
+                Оставить
+              </button>
+            </div>
+          ) : (
+            <div className="dx-appt-actions">
+              <button className="nx-btn" type="button" onClick={() => onBook(appt)}>
+                Перенести
+              </button>
+              <button className="nx-btn" type="button" onClick={() => setCancelling(true)}>
+                Отменить
+              </button>
+            </div>
+          )}
+        </section>
       ) : (
-        <button className="primary" type="button" onClick={() => setAsked(true)}>
-          Обсудить с терапевтом
+        <button className="primary" type="button" onClick={() => onBook()}>
+          Записаться к терапевту
           <ArrowRight size={18} weight="bold" aria-hidden="true" />
         </button>
       )}
