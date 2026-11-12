@@ -116,50 +116,43 @@ export function App() {
             ))}
           </div>
 
-          <div className="rail" role="group" aria-label="Системы">
-            {ORDER.map((item) => {
-              const itemLevel = levelOf(item.risk)
-              const on = item.id === selected
-              return (
-                <button
-                  key={item.id}
-                  id={`chip-${item.id}`}
-                  type="button"
-                  className={on ? 'chip is-on' : 'chip'}
-                  aria-pressed={on}
-                  style={{ ['--chip-color' as string]: MESH_COLOR[itemLevel] }}
-                  onClick={() => setSelected(on ? null : item.id)}
-                >
-                  <i style={{ background: MESH_COLOR[itemLevel] }} />
-                  {item.short}
-                </button>
-              )
-            })}
-          </div>
+          {system && (
+            <div className="rail" role="group" aria-label="Системы">
+              {ORDER.map((item) => {
+                const itemLevel = levelOf(item.risk)
+                const on = item.id === selected
+                return (
+                  <button
+                    key={item.id}
+                    id={`chip-${item.id}`}
+                    type="button"
+                    className={on ? 'chip is-on' : 'chip'}
+                    aria-pressed={on}
+                    style={{ ['--chip-color' as string]: MESH_COLOR[itemLevel] }}
+                    onClick={() => setSelected(on ? null : item.id)}
+                  >
+                    <i style={{ background: MESH_COLOR[itemLevel] }} />
+                    {item.short}
+                  </button>
+                )
+              })}
+            </div>
+          )}
 
           <div className="scroll">
             {system && level ? (
               <>
-                <p className="eyebrow">Система</p>
                 <h2>{system.name}</h2>
-                <p className="covers">На модели: {system.covers}</p>
-                <div className="row">
-                  <span className="pill" style={{ background: RISK_SOFT[level], color: RISK_INK[level] }}>
-                    {RISK_LABEL[level]} риск
-                  </span>
-                  <span className="score-num" style={{ color: RISK_INK[level] }}>
-                    {system.risk}
-                  </span>
-                </div>
-                <div
-                  className="meter"
-                  role="meter"
-                  aria-valuenow={system.risk}
-                  aria-valuemin={0}
-                  aria-valuemax={100}
-                  aria-label="Уровень риска"
-                >
-                  <span style={{ width: `${system.risk}%`, background: MESH_COLOR[level] }} />
+                <p className="covers">{system.covers}</p>
+                <div className="stats">
+                  <div className="stat">
+                    <span>Риск</span>
+                    <b style={{ color: RISK_INK[level] }}>{RISK_LABEL[level]}</b>
+                  </div>
+                  <div className="stat">
+                    <span>Балл из 100</span>
+                    <b style={{ color: RISK_INK[level] }}>{system.risk}</b>
+                  </div>
                 </div>
                 <p className="lead">{system.summary}</p>
                 {expanded && (
@@ -197,10 +190,9 @@ export function App() {
               </>
             ) : (
               <>
-                <p className="eyebrow">13 систем</p>
-                <h2>Цвет — это риск</h2>
+                <h2>Системы</h2>
                 <p className="lead">
-                  Выше остальных сейчас {top[0]}, {top[1]} и {top[2]}. Нажмите на орган или на чип.
+                  {`Цвет на модели — уровень риска. Сейчас выше остальных ${top[0]}, ${top[1]} и ${top[2]}.`}
                 </p>
                 <ul className="overview-list">
                   {ORDER.map((item) => {
@@ -208,13 +200,16 @@ export function App() {
                     return (
                       <li key={item.id}>
                         <button type="button" onClick={() => setSelected(item.id)}>
-                          <i className="legend-dot" style={{ background: MESH_COLOR[itemLevel] }} />
-                          <span>
+                          <span className="swatch" style={{ background: RISK_SOFT[itemLevel] }}>
+                            <i style={{ background: MESH_COLOR[itemLevel] }} />
+                          </span>
+                          <span className="copy">
                             <span className="name">{item.name}</span>
                             <span className="sub">{item.covers}</span>
                           </span>
                           <span className="risk-word" style={{ color: RISK_INK[itemLevel] }}>
-                            {RISK_LABEL[itemLevel]} · {item.risk}
+                            {RISK_LABEL[itemLevel]}
+                            <small>{item.risk}</small>
                           </span>
                         </button>
                       </li>
@@ -243,27 +238,11 @@ export function App() {
 }
 
 function ScoreRing({ value }: { value: number }) {
-  const tone = value >= 75 ? MESH_COLOR.low : value >= 55 ? MESH_COLOR.watch : MESH_COLOR.high
-  const radius = 22
-  const circumference = 2 * Math.PI * radius
-  const dash = circumference * (value / 100)
+  const tone = value >= 75 ? RISK_INK.low : value >= 55 ? RISK_INK.watch : RISK_INK.high
   return (
     <div className="score" role="img" aria-label={`Индекс здоровья ${value} из 100. Выше — спокойнее.`}>
-      <svg viewBox="0 0 56 56">
-        <circle cx="28" cy="28" r={radius} fill="none" stroke="#E6EDF1" strokeWidth="4.5" />
-        <circle
-          cx="28"
-          cy="28"
-          r={radius}
-          fill="none"
-          stroke={tone}
-          strokeWidth="4.5"
-          strokeLinecap="round"
-          strokeDasharray={`${dash} ${circumference}`}
-          transform="rotate(-90 28 28)"
-        />
-      </svg>
-      <strong>{value}</strong>
+      <strong style={{ color: tone }}>{value}</strong>
+      <span>из 100</span>
     </div>
   )
 }
