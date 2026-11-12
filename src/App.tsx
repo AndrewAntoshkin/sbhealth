@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react'
 import { BodyCanvas } from './scene/BodyCanvas'
+import { IndexSheet } from './IndexSheet'
 import {
   MESH_COLOR,
   RISK_INK,
@@ -52,6 +53,8 @@ export function App() {
   const [peek, setPeek] = useState(0)
   const [inset, setInset] = useState(0)
   const [hint, setHint] = useState(true)
+  const [scoreOpen, setScoreOpen] = useState(false)
+  const chipRef = useRef<HTMLButtonElement>(null)
   const wide = useWide()
   const system = selected ? systemById(selected) : null
   const level = system ? levelOf(system.risk) : null
@@ -80,8 +83,17 @@ export function App() {
     })
   }, [selected])
 
+  const closeScore = useCallback(() => {
+    setScoreOpen(false)
+    chipRef.current?.focus({ preventScroll: true })
+  }, [])
+
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
+      if (scoreOpen) {
+        if (event.key === 'Escape') closeScore()
+        return
+      }
       if (event.key === 'Escape') {
         setSelected(null)
         return
@@ -94,7 +106,7 @@ export function App() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [selected])
+  }, [selected, scoreOpen, closeScore])
 
   return (
     <div className="app">
@@ -106,7 +118,7 @@ export function App() {
             <p className="kicker">Демо · не диагноз</p>
           </div>
         </div>
-        <ScoreChip value={INDEX} tone={TONE} />
+        <ScoreChip value={INDEX} tone={TONE} buttonRef={chipRef} onOpen={() => setScoreOpen(true)} />
       </header>
 
       <div className="workspace">
@@ -275,6 +287,16 @@ export function App() {
           </section>
         )}
       </div>
+
+      {scoreOpen && (
+        <IndexSheet
+          onClose={closeScore}
+          onSelect={(id) => {
+            setScoreOpen(false)
+            setSelected(id)
+          }}
+        />
+      )}
     </div>
   )
 }
@@ -446,11 +468,28 @@ function Fine() {
   )
 }
 
-function ScoreChip({ value, tone }: { value: number; tone: string }) {
+function ScoreChip({
+  value,
+  tone,
+  onOpen,
+  buttonRef,
+}: {
+  value: number
+  tone: string
+  onOpen: () => void
+  buttonRef: React.Ref<HTMLButtonElement>
+}) {
   const color = value >= 75 ? RISK_INK.low : value >= 55 ? RISK_INK.watch : RISK_INK.high
   const circumference = 2 * Math.PI * 16
   return (
-    <div className="score" role="img" aria-label={`Индекс здоровья ${value} из 100. ${tone}. Выше — спокойнее.`}>
+    <button
+      ref={buttonRef}
+      className="score"
+      type="button"
+      aria-haspopup="dialog"
+      aria-label={`Индекс здоровья ${value} из 100. ${tone}. Открыть, как он считается`}
+      onClick={onOpen}
+    >
       <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
         <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(28, 40, 56, 0.09)" strokeWidth="4" />
         <circle
@@ -467,17 +506,43 @@ function ScoreChip({ value, tone }: { value: number; tone: string }) {
       </svg>
       <strong style={{ color }}>{value}</strong>
       <span>Индекс</span>
-    </div>
+      <svg className="score-chev" viewBox="0 0 24 24" width="14" height="14" aria-hidden="true">
+        <path d="M9 6l6 6-6 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    </button>
   )
 }
 
 function Mark() {
   return (
     <svg className="mark" viewBox="0 0 40 40" aria-hidden="true">
-      <rect width="40" height="40" fill="#21A038" />
-      <circle cx="20" cy="12" r="3.4" fill="#fff" />
-      <path fill="#fff" d="M14.2 18.4c.2-2 2-3.2 5.8-3.2s5.6 1.2 5.8 3.2V28c0 1.7-1.2 2.8-3 2.8h-5.6c-1.8 0-3-1.1-3-2.8V18.4z" />
-      <circle cx="23.6" cy="21.6" r="1.7" fill="#FF0D65" />
+      <defs>
+        <linearGradient id="mk-bg" x1="6" y1="0" x2="34" y2="40" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#3ACB61" />
+          <stop offset="1" stopColor="#168B32" />
+        </linearGradient>
+        <radialGradient id="mk-glow" cx="12" cy="4" r="30" gradientUnits="userSpaceOnUse">
+          <stop offset="0" stopColor="#fff" stopOpacity="0.2" />
+          <stop offset="1" stopColor="#fff" stopOpacity="0" />
+        </radialGradient>
+        <mask id="mk-cut" maskUnits="userSpaceOnUse" x="0" y="0" width="40" height="40">
+          <rect width="40" height="40" fill="#fff" />
+          <path
+            d="M10 25.4h6.6l2.2-4.6 3.2 8.6 2-4h6"
+            fill="none"
+            stroke="#000"
+            strokeWidth="1.9"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </mask>
+      </defs>
+      <rect width="40" height="40" fill="url(#mk-bg)" />
+      <rect width="40" height="40" fill="url(#mk-glow)" />
+      <g mask="url(#mk-cut)" transform="translate(20 20.4) scale(1.16) translate(-20 -21)">
+        <circle cx="20" cy="11.6" r="3.7" fill="#fff" />
+        <rect x="13.4" y="17.2" width="13.2" height="14.2" rx="6.6" fill="#fff" />
+      </g>
     </svg>
   )
 }
