@@ -19,7 +19,7 @@ export function Start({ onStart }: { onStart: () => void }) {
           <Mark />
           <b>Атлас</b>
         </span>
-        <span className="st-demo">Демо · не диагноз</span>
+        <span className="st-demo">Не диагноз</span>
       </header>
 
       <div className="st-copy">

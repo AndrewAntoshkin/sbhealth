@@ -133,7 +133,6 @@ export function Doctors({ go, onTab }: { go: (to: string) => void; onTab: (tab: 
             </ul>
           </section>
 
-          <p className="pf-fine">Врачи и отзывы вымышлены и нужны для демонстрации сценария.</p>
         </div>
       </main>
 
@@ -305,7 +304,6 @@ export function DoctorProfile({ id, go, onAtlas }: { id: string; go: (to: string
             </section>
           </div>
 
-          <p className="pf-fine">Врач и отзывы вымышлены и нужны для демонстрации сценария.</p>
         </div>
       </main>
 

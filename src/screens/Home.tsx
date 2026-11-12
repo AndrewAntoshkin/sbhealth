@@ -8,7 +8,7 @@ import { TopActions } from '../TopActions'
 import { DURATION, MODE_LABEL, nextAppointment, useCore, type Appointment } from '../store'
 import { cap, fmtDay, fmtDayLong, fmtTime, inDays } from '../time'
 import { MESH_COLOR, RISK_SOFT, levelOf, systemById, type SystemId } from '../data/systems'
-import { Fine, INDEX, ORDER, ORGAN_TITLE, RiskTag, TONE, thumb } from '../shared'
+import { INDEX, ORDER, ORGAN_TITLE, RiskTag, TONE, thumb } from '../shared'
 import { Dock, type DockTab } from './Dock'
 
 const HERO = `${import.meta.env.BASE_URL}hero.webp`
@@ -216,7 +216,7 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
 
           <section className="hm-sec hm-read" aria-labelledby="hm-read">
             <div className="hm-head">
-              <h2 id="hm-read">Показатели недели · демо</h2>
+              <h2 id="hm-read">Показатели недели</h2>
             </div>
             <ul className="hm-readings">
               {READINGS.map(({ id, at }) => {
@@ -260,7 +260,6 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
             </ul>
           </section>
 
-          <Fine />
         </div>
       </main>
 

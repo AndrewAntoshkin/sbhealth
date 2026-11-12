@@ -220,7 +220,6 @@ export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelec
           <section className="card">
             <div className="ix-title-row">
               <h3>Динамика за 8 недель</h3>
-              <span className="ix-demo">демо</span>
             </div>
             <p className="ix-sub">
               Так индекс выглядел бы при регулярных анализах: за два месяца он снизился на {TREND[0] - INDEX}.
@@ -308,8 +307,7 @@ export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelec
           </section>
 
           <p className="fine">
-            Расчёт показательный: риски в демо заданы вручную и не являются диагнозом. В настоящем продукте они
-            считаются из ваших анализов и обследований.
+            Расчёт показательный: риски не являются диагнозом и служат ориентиром, куда посмотреть в первую очередь.
           </p>
         </div>
       </div>

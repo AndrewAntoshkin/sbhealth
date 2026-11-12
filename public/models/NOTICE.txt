@@ -1,4 +1,4 @@
-3D anatomy in this demo is a simplified derivative of the Human Reference Atlas
+3D anatomy in this app is a simplified derivative of the Human Reference Atlas
 united male reference organ set, version 1.10.
 
 Source: HuBMAP / Human Reference Atlas, 3D Reference Object Library

@@ -14,7 +14,7 @@ export default defineConfig({
       manifest: {
         name: 'Атлас систем',
         short_name: 'Атлас',
-        description: 'Демо главного экрана: 3D-модель и риск по 13 системам организма.',
+        description: 'Главный экран: 3D-модель и риск по 13 системам организма.',
         lang: 'ru',
         dir: 'ltr',
         display: 'standalone',

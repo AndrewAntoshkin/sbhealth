@@ -66,23 +66,6 @@ export function RiskTag({ level, score }: { level: RiskLevel; score?: number }) 
   )
 }
 
-export function Fine() {
-  return (
-    <p className="fine">
-      Демо-данные для интерфейса, не медицинское заключение. Модель: Human Reference Atlas, мужской
-      референс v1.10,{' '}
-      <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
-        CC BY 4.0
-      </a>
-      . Упрощена для телефона.{' '}
-      <a href="https://humanatlas.io/3d-reference-library" target="_blank" rel="noreferrer">
-        Источник
-      </a>
-      .
-    </p>
-  )
-}
-
 export function Mark() {
   return (
     <svg className="mark" viewBox="0 0 40 40" aria-hidden="true">

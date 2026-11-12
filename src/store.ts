@@ -97,7 +97,7 @@ function seed(): Core {
             id: uid(),
             from: 'them',
             at: now - 2 * 3_600_000,
-            text: 'Здравствуйте! Это демо «Атласа систем»: данные условные и не заменяют врача. Здесь будут сообщения от врача и подсказки по вашим системам.',
+            text: 'Здравствуйте! Это «Атлас систем». Здесь будут сообщения от врача и подсказки по вашим системам.',
           },
         ],
       },
@@ -299,7 +299,7 @@ export function sendMessage(threadId: string, text: string) {
   setLive({ typing: threadId })
   window.setTimeout(() => {
     const viewing = live.viewing === threadId
-    const body = thread.doctor ? reply(clean, nextAppointment()) : 'Спасибо, передали команде. В демо живого ответа нет, но в продукте он пришёл бы сюда.'
+    const body = thread.doctor ? reply(clean, nextAppointment()) : 'Спасибо, передали команде. Ответ придёт сюда.'
     let next = pushMessage(core, threadId, { from: 'them', text: body }, !viewing)
     if (!viewing) next = pushNotif(next, { kind: 'message', title: thread.name, text: body, to: `#/messages/${threadId}` })
     set(next)

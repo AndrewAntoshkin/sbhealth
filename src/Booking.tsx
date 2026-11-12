@@ -73,7 +73,7 @@ function downloadIcs(appt: Appointment) {
     `DTSTAMP:${utc(Date.now())}`,
     `DTSTART:${utc(appt.start)}`,
     `DTEND:${utc(end)}`,
-    `SUMMARY:Приём: ${doctorById(appt.doctorId).role.toLowerCase()} (демо)`,
+    `SUMMARY:Приём: ${doctorById(appt.doctorId).role.toLowerCase()}`,
     `DESCRIPTION:${doctorById(appt.doctorId).name}. Тема: ${ORGAN_TITLE[appt.systemId]}.`,
     `LOCATION:${appt.mode === 'video' ? 'Видеосвязь' : CLINIC}`,
     'END:VEVENT',
@@ -196,7 +196,7 @@ export function Booking({
                 </>
               )}
             </button>
-            <p className="bk-fine">Это демо: запись сохраняется только на этом устройстве.</p>
+            <p className="bk-fine">Запись сохраняется на этом устройстве.</p>
           </>
         ) : (
           <>
@@ -224,7 +224,7 @@ export function Booking({
               <DoctorAva id={doctor.id} size={44} className="bk-ava" />
               <span>
                 <b>{doctor.name}</b>
-                <small>{doctor.role} · стаж {doctor.years} лет · {doctor.rating} ★ (демо)</small>
+                <small>{doctor.role} · стаж {doctor.years} лет · {doctor.rating} ★</small>
               </span>
             </div>
           </section>

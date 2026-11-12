@@ -67,7 +67,6 @@ export function Profile({ go, onAtlas, onTab }: { go: (to: string) => void; onAt
               <h1>Алексей Морозов</h1>
               <p>34 года · Москва</p>
               <p className="pf-chips">
-                <span>Демо-профиль</span>
                 <span>Группа крови II+</span>
               </p>
             </div>
@@ -126,7 +125,7 @@ export function Profile({ go, onAtlas, onTab }: { go: (to: string) => void; onAt
                 ))}
               </ul>
               {confirmReset ? (
-                <div className="nx-actions" role="group" aria-label="Сбросить демо-данные?">
+                <div className="nx-actions" role="group" aria-label="Сбросить данные?">
                   <button type="button" className="nx-btn is-dark" onClick={() => { resetDemo(); setConfirmReset(false) }}>
                     Да, сбросить
                   </button>
@@ -136,7 +135,7 @@ export function Profile({ go, onAtlas, onTab }: { go: (to: string) => void; onAt
                 </div>
               ) : (
                 <button type="button" className="pf-reset" onClick={() => setConfirmReset(true)}>
-                  Сбросить демо-данные
+                  Сбросить данные
                 </button>
               )}
             </section>
@@ -179,7 +178,7 @@ export function Profile({ go, onAtlas, onTab }: { go: (to: string) => void; onAt
 
             <section className="hm-sec" aria-labelledby="pf-labs">
               <div className="hm-head">
-                <h2 id="pf-labs">Последние анализы · демо</h2>
+                <h2 id="pf-labs">Последние анализы</h2>
                 <button type="button" className="hm-link" onClick={() => onAtlas()}>
                   Атлас <ArrowRight size={14} weight="bold" aria-hidden="true" />
                 </button>
@@ -209,7 +208,7 @@ export function Profile({ go, onAtlas, onTab }: { go: (to: string) => void; onAt
             </section>
           </div>
 
-          <p className="pf-fine">Демо-данные для интерфейса, не медицинское заключение. Всё хранится только на этом устройстве.</p>
+          <p className="pf-fine">Всё хранится только на этом устройстве.</p>
         </div>
       </main>
 

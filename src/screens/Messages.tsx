@@ -77,7 +77,7 @@ function ThreadView({ thread, onBack }: { thread: Thread; onBack: () => void }) 
         <Avatar thread={thread} size={44} />
         <div className="mg-who">
           <h2>{thread.name}</h2>
-          <p>{thread.role} · демо</p>
+          <p>{thread.role}</p>
         </div>
       </header>
 
@@ -174,7 +174,6 @@ export function Messages({ threadId, go, onTab }: { threadId: string | null; go:
               })}
             </ul>
             {!threads.some((t) => t.doctor) && <p className="mg-hint">Диалог с врачом появится здесь после записи на приём.</p>}
-            <p className="mg-note">Демо: ответы врача придуманы заранее и показывают сценарий.</p>
           </aside>
 
           {open ? (

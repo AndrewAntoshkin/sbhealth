@@ -27,7 +27,7 @@ import {
   type RiskLevel,
   type SystemId,
 } from '../data/systems'
-import { Fine, INDEX, Legend, Meter, ORDER, ORGAN_TITLE, RiskTag, ScoreChip, TONE, TOP_TEXT, photo, thumb } from '../shared'
+import { INDEX, Legend, Meter, ORDER, ORGAN_TITLE, RiskTag, ScoreChip, TONE, TOP_TEXT, photo, thumb } from '../shared'
 import { metricIcon } from '../metricIcons'
 import HOTSPOTS from '../data/hotspots.json'
 
@@ -116,7 +116,7 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
         )}
         <div className="top-title">
           <h1>Атлас тела</h1>
-          <p className="kicker">13 систем · демо</p>
+          <p className="kicker">13 систем</p>
         </div>
         <ScoreChip value={INDEX} tone={TONE} buttonRef={chipRef} onOpen={() => setScoreOpen(true)} />
       </header>
@@ -166,7 +166,6 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
                       withSummary
                       head
                     />
-                    <Fine />
                   </Sheet>
                 </>
               ) : (
@@ -199,7 +198,6 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
                   >
                     <h3 className="block-title">Все системы</h3>
                     <OverviewList onSelect={setSelected} />
-                    <Fine />
                   </Sheet>
                 </>
               )}
@@ -275,7 +273,6 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
                   <OverviewList onSelect={setSelected} />
                 </>
               )}
-              <Fine />
             </div>
           </section>
         )}
@@ -407,7 +404,7 @@ function OrganDetail({
       </section>
 
       <section className="dx-sec">
-        <h3>Показатели · демо</h3>
+        <h3>Показатели</h3>
         <ul className="dx-metrics">
           {system.metrics.map((metric, index) => {
             const MetricIcon = metricIcon(metric.label)
