@@ -134,7 +134,7 @@
   border: 1px solid rgba(255, 255, 255, 0.92);
   border-radius: 99px;
   background: rgba(255, 255, 255, 0.74);
-  box-shadow: 0 16px 30px -14px rgba(var(--tint), 0.45);
+  box-shadow: var(--sh-lift);
   -webkit-backdrop-filter: blur(18px) saturate(1.6);
   backdrop-filter: blur(18px) saturate(1.6);
   white-space: nowrap;
@@ -232,7 +232,7 @@
   background:
     radial-gradient(64% 64% at 86% 66%, rgba(226, 52, 69, 0.3) 0%, rgba(226, 52, 69, 0) 70%),
     linear-gradient(160deg, #1b2331 0%, #0e131b 100%);
-  box-shadow: 0 34px 50px -30px rgba(10, 16, 28, 0.7);
+  box-shadow: var(--sh-hero);
 }
 
 .hm-hero > img {
@@ -347,7 +347,7 @@
   border-radius: 28px;
   background: linear-gradient(150deg, var(--soft) 0%, #ffffff 135%);
   text-align: left;
-  box-shadow: 0 20px 34px -26px rgba(var(--tint), 0.6);
+  box-shadow: var(--sh-card);
   transition: transform 0.15s var(--ease);
 }
 
@@ -401,7 +401,7 @@
   list-style: none;
   border-radius: 28px;
   background: #fff;
-  box-shadow: 0 20px 34px -28px rgba(var(--tint), 0.6);
+  box-shadow: var(--sh-card);
 }
 
 .hm-readings li + li { border-top: 1px solid var(--line); }
@@ -452,7 +452,7 @@
   border-radius: 26px;
   background: #fff;
   text-align: left;
-  box-shadow: 0 18px 30px -24px rgba(var(--tint), 0.6);
+  box-shadow: var(--sh-card);
   transition: transform 0.15s var(--ease);
 }
 
@@ -490,7 +490,7 @@
   border: 1px solid rgba(255, 255, 255, 0.9);
   border-radius: 99px;
   background: rgba(255, 255, 255, 0.78);
-  box-shadow: 0 22px 40px -16px rgba(20, 32, 52, 0.4);
+  box-shadow: var(--sh-float);
   transform: translateX(-50%);
   -webkit-backdrop-filter: blur(26px) saturate(1.8);
   backdrop-filter: blur(26px) saturate(1.8);

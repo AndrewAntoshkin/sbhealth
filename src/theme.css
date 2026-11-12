@@ -38,7 +38,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.82);
   color: var(--ink);
-  box-shadow: 0 10px 22px -10px rgba(var(--tint), 0.35);
+  box-shadow: var(--sh-lift);
   transition: transform 0.15s var(--ease);
 }
 
@@ -55,7 +55,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
 
 .kicker { margin-top: 1px; font-size: 12.5px; font-weight: 500; }
 
-.score { border-radius: 99px; padding-right: 12px; box-shadow: 0 10px 22px -12px rgba(var(--tint), 0.4); }
+.score { border-radius: 99px; padding-right: 12px; box-shadow: var(--sh-lift); }
 .score span { font-weight: 600; font-size: 12px; }
 
 /* ——— Теги риска ——— */
@@ -131,7 +131,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   padding: 12px 14px;
   border-radius: 24px;
   background: #fff;
-  box-shadow: 0 14px 26px -22px rgba(var(--tint), 0.5);
+  box-shadow: var(--sh-card);
   transition: transform 0.15s var(--ease);
 }
 
@@ -150,11 +150,11 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   border-radius: 28px;
   background: rgba(255, 255, 255, 0.9);
   border-color: rgba(255, 255, 255, 0.95);
-  box-shadow: 0 20px 34px -20px rgba(var(--tint), 0.5);
+  box-shadow: var(--sh-card);
 }
 
 .dcard.is-on {
-  box-shadow: 0 22px 38px -16px color-mix(in srgb, var(--c) 50%, rgba(var(--tint), 0.35));
+  box-shadow: var(--sh-lift);
 }
 
 .dthumb { border-radius: 20px; }
@@ -184,7 +184,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   background: rgba(255, 255, 255, 0.85);
   color: var(--ink);
   font-weight: 550;
-  box-shadow: 0 8px 18px -14px rgba(var(--tint), 0.6);
+  box-shadow: var(--sh-card);
   transition: background-color 0.2s, color 0.2s;
 }
 
@@ -200,7 +200,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
 .card {
   border-radius: 28px;
   background: #fff;
-  box-shadow: 0 16px 30px -24px rgba(var(--tint), 0.5);
+  box-shadow: var(--sh-card);
 }
 
 .card h3 { font-weight: 600; letter-spacing: -0.035em; }
@@ -306,7 +306,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   font: inherit;
   text-align: left;
   cursor: pointer;
-  box-shadow: 0 14px 26px -22px rgba(var(--tint), 0.6);
+  box-shadow: var(--sh-card);
   transition: box-shadow 0.25s var(--ease), background-color 0.25s var(--ease), transform 0.25s var(--ease);
   -webkit-tap-highlight-color: transparent;
 }
@@ -317,7 +317,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
 .dx-metric.is-on {
   box-shadow:
     0 0 0 1.5px var(--c),
-    0 18px 30px -20px color-mix(in srgb, var(--c) 55%, rgba(var(--tint), 0.4));
+    var(--sh-card);
 }
 
 .dx-ico {
@@ -364,7 +364,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
     linear-gradient(165deg, var(--soft), color-mix(in srgb, var(--soft) 55%, #dfe5ec));
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.9),
-    0 26px 40px -30px rgba(var(--tint), 0.6);
+    var(--sh-card);
 }
 
 .dx-visual > img {
@@ -431,7 +431,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   background: rgba(255, 255, 255, 0.88);
   -webkit-backdrop-filter: blur(14px);
   backdrop-filter: blur(14px);
-  box-shadow: 0 14px 26px -16px rgba(var(--tint), 0.6);
+  box-shadow: var(--sh-lift);
   animation: dx-in 0.35s var(--ease) both;
 }
 
@@ -464,7 +464,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   font-size: 16px;
   font-weight: 600;
   letter-spacing: -0.02em;
-  box-shadow: 0 18px 30px -16px rgba(16, 21, 28, 0.6);
+  box-shadow: var(--sh-btn);
   transition: transform 0.15s var(--ease);
 }
 
@@ -519,10 +519,10 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   .panel {
     border-radius: 32px;
     background: rgba(255, 255, 255, 0.7);
-    box-shadow: 0 24px 50px -30px rgba(var(--tint), 0.5);
+    box-shadow: var(--sh-card);
   }
 
-  .stage { border-radius: 32px; box-shadow: 0 24px 50px -30px rgba(var(--tint), 0.45); }
+  .stage { border-radius: 32px; box-shadow: var(--sh-card); }
   .scroll { padding: 6px 20px 24px; }
 }
 
@@ -561,7 +561,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   border: 0;
   border-radius: 99px;
   background: #fff;
-  box-shadow: 0 10px 20px -16px rgba(var(--tint), 0.6);
+  box-shadow: var(--sh-card);
   opacity: 1;
   transform: none;
   scroll-snap-align: none;
@@ -572,7 +572,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
 .sheet.is-deck.is-grown .deck .dcard.is-on {
   background: var(--ink);
   color: #fff;
-  box-shadow: 0 14px 24px -14px rgba(16, 21, 28, 0.6);
+  box-shadow: var(--sh-btn);
 }
 
 .sheet.is-deck.is-grown .dthumb { width: 36px; height: 36px; border-radius: 50%; }
@@ -610,12 +610,12 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   opacity: 1;
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
-  box-shadow: 0 14px 26px -20px rgba(var(--tint), 0.55);
+  box-shadow: var(--sh-card);
 }
 
 .dcard.is-on {
   box-shadow:
-    0 20px 34px -16px color-mix(in srgb, var(--c) 45%, rgba(var(--tint), 0.35)),
+    var(--sh-lift),
     0 0 0 1px rgba(16, 21, 28, 0.04);
 }
 
