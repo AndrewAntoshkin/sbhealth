@@ -562,9 +562,8 @@
       'top top'
       'hero next'
       'hero att'
-      'learn learn'
-      'read rest'
-      'fine fine';
+      'rest rest'
+      'read learn';
     gap: 32px 24px;
     padding: 28px 32px 132px;
   }
@@ -576,11 +575,15 @@
   .hm-next { grid-area: next; }
   .hm-att { grid-area: att; }
   .hm-learn { grid-area: learn; }
-  .hm-read { grid-area: read; }
+  .hm-read { grid-area: read; display: flex; flex-direction: column; }
+  .hm-read .hm-readings { display: flex; flex: 1; flex-direction: column; }
+  .hm-read .hm-readings li { display: flex; flex: 1; align-items: center; }
+  .hm-read .hm-readings li > button { width: 100%; }
   .hm-rest { grid-area: rest; }
   .home .fine { grid-area: fine; }
   .hm-rail { flex-wrap: wrap; margin: 0; padding: 0; overflow: visible; }
   .hm-rail li { flex: 0 0 calc(33.333% - 7px); }
+  .hm-rest .hm-rail li { flex: 0 0 calc(20% - 8px); }
 }
 
 @media (max-width: 380px) {
