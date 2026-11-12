@@ -31,7 +31,7 @@ export function BodyCanvas({ selected, resetSignal, onSelect }: Props) {
     <>
       <Canvas
         dpr={[1, 1.7]}
-        camera={{ position: [HOME_POS.x, HOME_POS.y, HOME_POS.z], fov: 28, near: 0.08, far: 40 }}
+        camera={{ position: [HOME_POS.x, HOME_POS.y, HOME_POS.z], fov: 28, near: 0.02, far: 40 }}
         gl={{ antialias: true, alpha: true, powerPreference: 'high-performance' }}
         onCreated={({ gl }) => {
           gl.setClearColor(0x000000, 0)
@@ -60,11 +60,43 @@ function Loader() {
   )
 }
 
+function heroBox(root: THREE.Object3D, systemId: SystemId) {
+  const scored: { box: THREE.Box3; center: THREE.Vector3; score: number }[] = []
+  root.traverse((obj) => {
+    const mesh = obj as THREE.Mesh
+    if (!mesh.isMesh || mesh.userData.system !== systemId) return
+    const box = new THREE.Box3().setFromObject(mesh)
+    if (box.isEmpty()) return
+    const size = box.getSize(new THREE.Vector3())
+    const minSide = Math.max(Math.min(size.x, size.y, size.z), 1e-4)
+    const volume = size.x * size.y * size.z
+    scored.push({
+      box,
+      center: box.getCenter(new THREE.Vector3()),
+      score: volume / (Math.max(size.x, size.y, size.z) / minSide),
+    })
+  })
+  scored.sort((a, b) => b.score - a.score)
+  if (!scored.length) return new THREE.Box3()
+  const box = scored[0].box.clone()
+  const sizeOf = (target: THREE.Box3) => target.getSize(new THREE.Vector3()).length()
+  const origin = scored[0].center
+  const reach = Math.max(sizeOf(box) * 0.85, 0.05)
+  for (const item of scored.slice(1)) {
+    if (item.center.distanceTo(origin) > reach) continue
+    const next = box.clone().union(item.box)
+    if (sizeOf(next) > sizeOf(box) * 1.35) continue
+    box.union(item.box)
+  }
+  return box
+}
+
 function Scene({ selected, resetSignal, onSelect }: Props) {
   const gltf = useGLTF(MODEL_URL)
   const group = useRef<THREE.Group>(null)
   const controls = useRef<CameraControlsImpl>(null)
   const spin = useRef(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const framed = useRef(false)
   const selectedRef = useRef(selected)
   const hovered = useRef<SystemId | null>(null)
   const onSelectRef = useRef(onSelect)
@@ -95,9 +127,9 @@ function Scene({ selected, resetSignal, onSelect }: Props) {
   useEffect(() => {
     const rig = controls.current
     if (!rig) return
-    rig.smoothTime = 0.45
+    rig.smoothTime = 0.55
     rig.truckSpeed = 0
-    rig.minDistance = 1.75
+    rig.minDistance = 0.28
     rig.maxDistance = 6.5
     rig.minPolarAngle = 0.32
     rig.maxPolarAngle = Math.PI * 0.8
@@ -106,22 +138,25 @@ function Scene({ selected, resetSignal, onSelect }: Props) {
   useEffect(() => {
     const rig = controls.current
     const root = group.current
-    if (!rig || !root || !selected) return
+    if (!rig || !root) return
+    if (!selected) {
+      if (!framed.current) return
+      framed.current = false
+      spin.current = false
+      root.rotation.y = DEFAULT_YAW
+      void rig.setLookAt(HOME_POS.x, HOME_POS.y, HOME_POS.z, HOME_TARGET.x, HOME_TARGET.y, HOME_TARGET.z, true)
+      return
+    }
+    framed.current = true
     spin.current = false
-    const system = SYSTEMS.find((item) => item.id === selected)!
-    const box = new THREE.Box3()
-    root.traverse((obj) => {
-      const mesh = obj as THREE.Mesh
-      if (mesh.isMesh && mesh.userData.system === selected) box.expandByObject(mesh)
-    })
+    root.rotation.y = DEFAULT_YAW
+    root.updateMatrixWorld(true)
+    const box = heroBox(root, selected)
     if (box.isEmpty()) return
     const center = box.getCenter(new THREE.Vector3())
-    const sphere = box.getBoundingSphere(new THREE.Sphere())
-    const distance = THREE.MathUtils.clamp(Math.max(system.focus, sphere.radius * 3.1), 1.85, 4.3)
-    const target = rig.getTarget(new THREE.Vector3())
-    const offset = new THREE.Vector3().subVectors(rig.camera.position, target)
-    if (offset.lengthSq() < 1e-4) offset.subVectors(HOME_POS, HOME_TARGET)
-    offset.setLength(distance)
+    const radius = box.getBoundingSphere(new THREE.Sphere()).radius
+    const distance = THREE.MathUtils.clamp(radius * 3.6, selected === 'integumentary' ? 3.4 : 0.32, selected === 'integumentary' ? 4.4 : 1.15)
+    const offset = new THREE.Vector3(0.28, 0.16, 1).normalize().multiplyScalar(distance)
     const position = center.clone().add(offset)
     void rig.setLookAt(position.x, position.y, position.z, center.x, center.y, center.z, true)
   }, [selected])
@@ -146,8 +181,12 @@ function Scene({ selected, resetSignal, onSelect }: Props) {
     for (const system of SYSTEMS) {
       const material = materials[system.id]
       const base = material.userData.base as THREE.Color
+      const faded = Boolean(current) && system.id !== current
+      material.transparent = true
+      material.opacity = faded ? 0.16 : 1
+      material.depthWrite = !faded
       if (hot && system.id !== hot) {
-        material.color.copy(base).lerp(DIM, 0.8)
+        material.color.copy(base).lerp(DIM, current ? 0.92 : 0.8)
         material.emissiveIntensity = 0.02
       } else if (hot && system.id === hot) {
         material.color.copy(base)
@@ -162,7 +201,7 @@ function Scene({ selected, resetSignal, onSelect }: Props) {
       skinMaterial.opacity = 0.48
     } else if (current) {
       skinMaterial.color.copy(SKIN_TINT)
-      skinMaterial.opacity = 0.1
+      skinMaterial.opacity = 0.05
     } else {
       skinMaterial.color.copy(SKIN_TINT)
       skinMaterial.opacity = hovered.current === 'integumentary' ? 0.3 : 0.2

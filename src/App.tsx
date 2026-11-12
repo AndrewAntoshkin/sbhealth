@@ -14,6 +14,22 @@ import {
   type SystemId,
 } from './data/systems'
 
+const ORGAN_TITLE: Record<SystemId, string> = {
+  cardiovascular: 'Сердце',
+  nervous: 'Головной мозг',
+  endocrine: 'Поджелудочная',
+  musculoskeletal: 'Позвоночник',
+  digestive: 'Печень',
+  hematopoietic: 'Костный мозг',
+  integumentary: 'Кожа',
+  lymphatic: 'Селезёнка',
+  immune: 'Тимус',
+  reproductive: 'Органы таза',
+  respiratory: 'Лёгкие',
+  sensory: 'Глаза',
+  urinary: 'Почки',
+}
+
 const ORDER = systemsByRisk()
 const INDEX = healthIndex()
 const TONE = indexTone(INDEX)
@@ -31,8 +47,10 @@ export function App() {
 
   useEffect(() => {
     setAsked(false)
-    if (selected) setOpen(true)
-    if (!selected) return
+    if (!selected) {
+      setOpen(false)
+      return
+    }
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     document.getElementById(`chip-${selected}`)?.scrollIntoView({
       inline: 'center',
@@ -74,26 +92,50 @@ export function App() {
       </header>
 
       <div className="workspace">
-        <div className="stage">
+        <div className={selected && !open ? 'stage is-focus' : 'stage'}>
           <BodyCanvas
             selected={selected}
             resetSignal={resetSignal}
-            onSelect={(id) => {
-              setSelected(id)
-              if (id) setOpen(true)
-            }}
+            onSelect={(id) => setSelected(id)}
           />
-          <button
-            className="reset"
-            type="button"
-            aria-label="Вернуть общий ракурс"
-            onClick={() => {
-              setSelected(null)
-              setResetSignal((value) => value + 1)
-            }}
-          >
-            <ResetIcon />
-          </button>
+          {system && level && !open && (
+            <div className="focus-ui">
+              <button
+                className="back"
+                type="button"
+                aria-label="Ко всему телу"
+                onClick={() => setSelected(null)}
+              >
+                <BackIcon />
+              </button>
+              {system.metrics.slice(0, 2).map((metric, index) => (
+                <div className={index === 0 ? 'float-pill is-a' : 'float-pill is-b'} key={metric.label}>
+                  <i style={{ background: MESH_COLOR[level] }} />
+                  <b>{metric.value}</b>
+                  <span>{metric.label}</span>
+                </div>
+              ))}
+              <div className="organ-card">
+                <div>
+                  <strong>{ORGAN_TITLE[system.id]}</strong>
+                  <p>{system.summary}</p>
+                </div>
+                <button type="button" aria-label="Подробнее" onClick={() => setOpen(true)}>
+                  <ArrowIcon />
+                </button>
+              </div>
+            </div>
+          )}
+          {!selected && (
+            <button
+              className="reset"
+              type="button"
+              aria-label="Вернуть общий ракурс"
+              onClick={() => setResetSignal((value) => value + 1)}
+            >
+              <ResetIcon />
+            </button>
+          )}
         </div>
 
         <section className={expanded ? 'panel is-open' : 'panel'} aria-label="Системы и риск">
@@ -263,6 +305,22 @@ function Mark() {
       <circle cx="20" cy="12" r="3.4" fill="#fff" />
       <path fill="#fff" d="M14.2 18.4c.2-2 2-3.2 5.8-3.2s5.6 1.2 5.8 3.2V28c0 1.7-1.2 2.8-3 2.8h-5.6c-1.8 0-3-1.1-3-2.8V18.4z" />
       <circle cx="23.6" cy="21.6" r="1.7" fill="#FF0D65" />
+    </svg>
+  )
+}
+
+function BackIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M12.5 4.5 7 10l5.5 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function ArrowIcon() {
+  return (
+    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+      <path d="M4 9h10M10 5l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

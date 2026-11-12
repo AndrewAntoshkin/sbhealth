@@ -136,6 +136,118 @@ h1 {
 
 .stage canvas { display: block; touch-action: none; }
 
+.stage.is-focus {
+  flex: 1 1 auto;
+  height: auto;
+  min-height: 0;
+}
+
+.app:has(.stage.is-focus) .panel { display: none; }
+
+.focus-ui {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+}
+
+.back,
+.organ-card button,
+.float-pill { pointer-events: auto; }
+
+.back {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: 0 8px 20px rgba(20, 24, 28, 0.08);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+}
+
+.float-pill {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 36px;
+  padding: 6px 12px 6px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 20px rgba(20, 24, 28, 0.08);
+}
+
+.float-pill.is-a { top: 22%; right: 8%; }
+.float-pill.is-b { top: 46%; left: 6%; }
+
+.float-pill i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.float-pill b {
+  font-size: 14px;
+  letter-spacing: -0.02em;
+}
+
+.float-pill span {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.organ-card {
+  position: absolute;
+  left: 14px;
+  right: 14px;
+  bottom: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 14px 16px 18px;
+  border-radius: 24px;
+  background: rgba(232, 236, 242, 0.94);
+  box-shadow: 0 12px 32px rgba(20, 24, 28, 0.08);
+  pointer-events: none;
+}
+
+.organ-card strong {
+  display: block;
+  font-size: 18px;
+  letter-spacing: -0.03em;
+  line-height: 1.2;
+}
+
+.organ-card p {
+  margin: 6px 0 0;
+  color: var(--ink-soft);
+  font-size: 14px;
+  line-height: 1.4;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.organ-card button {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 auto;
+  border: 0;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 6px 16px rgba(20, 24, 28, 0.1);
+  color: var(--ink);
+  display: grid;
+  place-items: center;
+}
+
 .reset {
   position: absolute;
   right: 12px;
