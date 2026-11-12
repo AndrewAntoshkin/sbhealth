@@ -25,12 +25,14 @@ export function Notifications({ onClose, onGo }: { onClose: () => void; onGo: (t
         </span>
         <span className="nt-copy">
           <span className="nt-top">
-            <b>{n.title}</b>
+            <b>
+              {n.title}
+              {!n.read && <i className="nt-dot" aria-label="Не прочитано" />}
+            </b>
             <time dateTime={new Date(n.at).toISOString()}>{rel(n.at)}</time>
           </span>
           <span className="nt-text">{n.text}</span>
         </span>
-        {!n.read && <i className="nt-dot" aria-label="Не прочитано" />}
       </>
     )
     return (
@@ -56,19 +58,17 @@ export function Notifications({ onClose, onGo }: { onClose: () => void; onGo: (t
   }
 
   return (
-    <Overlay kicker={unread.length ? `${unread.length} нов.` : 'Всё прочитано'} title="Уведомления" variant="drawer" onClose={onClose}>
+    <Overlay title="Уведомления" variant="drawer" onClose={onClose}>
       <div className="nt">
-        {unread.length > 0 && (
-          <div className="nt-bar">
-            <button type="button" className="text-btn" onClick={markAllNotifsRead}>
-              Прочитать все
-            </button>
-          </div>
-        )}
         {notifs.length === 0 && <p className="nt-empty">Пока тихо. Здесь появятся подтверждения записей и советы.</p>}
         {unread.length > 0 && (
           <section aria-label="Новые">
-            <h3 className="bk-h">Новые</h3>
+            <div className="nt-head">
+              <h3 className="bk-h">Новые</h3>
+              <button type="button" className="text-btn" onClick={markAllNotifsRead}>
+                Прочитать все
+              </button>
+            </div>
             <ul className="nt-list">{unread.map(item)}</ul>
           </section>
         )}

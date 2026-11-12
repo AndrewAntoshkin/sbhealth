@@ -18,7 +18,7 @@ export function Learn({ id, go, onTab, onAtlas }: { id: string | null; go: (to: 
 
   return (
     <>
-      <main className="screen learn">
+      <main className={article ? 'screen learn is-reading' : 'screen learn'}>
         <div className="ln-wrap">
           <button type="button" className="back ln-back" aria-label={article ? 'К статьям' : 'К сводке'} onClick={() => go(article ? '#/learn' : '#/home')}>
             <CaretLeft size={20} weight="bold" aria-hidden="true" />
@@ -112,7 +112,7 @@ export function Learn({ id, go, onTab, onAtlas }: { id: string | null; go: (to: 
         </div>
       </main>
 
-      <Dock active={null} onGo={(tab) => onTab(tab)} />
+      {!article && <Dock active={null} onGo={(tab) => onTab(tab)} />}
     </>
   )
 }

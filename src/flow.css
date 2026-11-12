@@ -650,14 +650,15 @@ button:disabled { cursor: not-allowed; }
 
 /* ——— Уведомления ——— */
 .nt { display: flex; flex-direction: column; gap: 18px; }
-.nt-bar { display: flex; justify-content: flex-end; margin-bottom: -6px; }
-.nt-bar .text-btn { width: auto; margin: 0; padding: 4px 2px; font-size: 14px; }
+.nt-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; margin-bottom: 10px; }
+.nt-head .bk-h { margin: 0; }
+.nt-head .text-btn { width: auto; margin: 0; padding: 4px 2px; font-size: 14px; }
 .nt-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; }
 .nt-empty { margin: 24px 0; color: var(--muted); font-size: 15px; line-height: 1.45; text-align: center; }
 
 .nt-item {
   display: grid;
-  grid-template-columns: 48px minmax(0, 1fr) auto;
+  grid-template-columns: 48px minmax(0, 1fr);
   align-items: start;
   gap: 14px;
   width: 100%;
@@ -704,7 +705,7 @@ button:disabled { cursor: not-allowed; }
   -webkit-box-orient: vertical;
 }
 
-.nt-dot { width: 9px; height: 9px; margin-top: 6px; border-radius: 50%; background: var(--focus); }
+.nt-dot { display: inline-block; width: 8px; height: 8px; margin-left: 7px; vertical-align: 2px; border-radius: 50%; background: var(--focus); }
 
 /* ——— Тост ——— */
 .toasts {
@@ -1728,3 +1729,6 @@ p, li { text-wrap: pretty; }
   .mg-wrap { padding-top: 24px; }
   .top { padding-top: 20px; padding-left: 24px; padding-right: 24px; }
 }
+
+/* Статья: навигации снизу нет, лишнего запаса под неё не нужно */
+.is-reading .ln-wrap { padding-bottom: calc(32px + env(safe-area-inset-bottom)); }

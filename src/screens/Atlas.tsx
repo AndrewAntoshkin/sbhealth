@@ -144,7 +144,7 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
             <div className="phone-ui">
               {system && level ? (
                 <>
-                  <div className="pill-row" style={{ bottom: Math.max(0, peek - 2) }}>
+                  <div className="pill-row" style={{ bottom: `calc(${Math.max(0, peek - 14)}px + max(12px, env(safe-area-inset-bottom)))` }}>
                     {system.metrics.slice(0, 2).map((metric) => (
                       <div className="float-pill" key={`${system.id}-${metric.label}`}>
                         <i style={{ background: MESH_COLOR[level] }} />
@@ -183,7 +183,7 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
                     <ArrowCounterClockwise size={20} weight="bold" aria-hidden="true" />
                   </button>
                   {hint && (
-                    <div className="hint" role="status" style={{ bottom: peek + 14 }}>
+                    <div className="hint" role="status" style={{ bottom: `calc(${peek + 2}px + max(12px, env(safe-area-inset-bottom)))` }}>
                       <i />
                       Нажмите на орган
                     </div>
