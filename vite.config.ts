@@ -18,8 +18,8 @@ export default defineConfig({
         lang: 'ru',
         dir: 'ltr',
         display: 'standalone',
-        background_color: '#E7EEF2',
-        theme_color: '#FFFFFF',
+        background_color: '#E6EAEF',
+        theme_color: '#E6EAEF',
         start_url: '.',
         scope: '.',
         icons: [

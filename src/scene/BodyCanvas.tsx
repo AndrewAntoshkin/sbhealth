@@ -146,6 +146,13 @@ function Scene({ selected, resetSignal, peek, inset, onSelect, onReady }: Props)
   selectedRef.current = selected
   onSelectRef.current = onSelect
 
+  useEffect(() => {
+    // только dev: scripts/render-*.cjs ставят камеру и прячут части модели
+    if (!import.meta.env.DEV) return
+    const hook = (window as unknown as { __atlas?: Record<string, unknown> }).__atlas
+    if (hook) Object.assign(hook, { controls: controls.current, camera })
+  })
+
   const built = useMemo(() => buildParts(gltf.scene), [gltf.scene])
   const materials = useMemo(() => makeMaterials(), [])
   const skinMaterial = useMemo(

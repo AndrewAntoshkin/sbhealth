@@ -1,11 +1,10 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import '@fontsource/manrope/400.css'
-import '@fontsource/manrope/500.css'
-import '@fontsource/manrope/600.css'
-import '@fontsource/manrope/700.css'
+import '@fontsource-variable/onest/wght.css'
 import { App } from './App'
 import './styles.css'
+import './theme.css'
+import './screens.css'
 import { registerSW } from 'virtual:pwa-register'
 
 // Service worker качает весь кэш (≈4 МБ) — не отбираем у модели канал: стартуем, когда тело уже на экране.
