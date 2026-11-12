@@ -475,6 +475,9 @@
 
 .home .fine { margin-top: 0; padding: 0 4px; }
 
+.hm-nextwrap { display: contents; }
+.hm-next-head { display: none; }
+
 /* ——— Плавающая навигация ——— */
 .dock {
   position: fixed;
@@ -572,7 +575,11 @@
   .hm-hero { grid-area: hero; min-height: 420px; padding: 30px 28px 28px; }
   .hm-hero-copy { min-height: 360px; }
   .hm-hero > img { right: -27%; bottom: -3%; width: auto; height: 106%; max-width: none; }
-  .hm-next { grid-area: next; }
+  .hm-nextwrap { grid-area: next; display: flex; flex-direction: column; }
+  .hm-nextwrap .hm-next { flex: 1; }
+  .hm-next-head { display: flex; }
+  .hm-next:not(.is-booked) .hm-kicker { display: none; }
+  .hm-tone { max-width: none; white-space: nowrap; }
   .hm-att { grid-area: att; }
   .hm-learn { grid-area: learn; }
   .hm-read { grid-area: read; display: flex; flex-direction: column; }
@@ -582,8 +589,10 @@
   .hm-read .hm-readings i { margin-top: 5px; }
   .hm-read .hm-readings b { grid-column: 2; font-size: 24px; letter-spacing: -0.05em; }
   .hm-next:not(.is-booked) { grid-template-rows: auto auto 1fr auto; }
-  .hm-next:not(.is-booked) .nx-text { align-self: start; }
+  .hm-next:not(.is-booked) .nx-title { grid-row: 1 / span 2; align-self: center; margin: 0; }
+  .hm-next:not(.is-booked) .nx-text { align-self: center; }
   .hm-next:not(.is-booked) .nx-actions { align-self: end; }
+  .hm-learn { display: flex; flex-direction: column; }
   .hm-rest { grid-area: rest; }
   .home .fine { grid-area: fine; }
   .hm-rail { flex-wrap: wrap; margin: 0; padding: 0; overflow: visible; }

@@ -112,6 +112,10 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
             </div>
           </section>
 
+          <div className="hm-nextwrap">
+            <div className="hm-head hm-next-head" aria-hidden="true">
+              <h2>Следующий шаг</h2>
+            </div>
           {appt && apptSystem ? (
             <section className="hm-next is-booked" aria-labelledby="hm-next">
               <p className="hm-kicker" id="hm-next">
@@ -156,6 +160,7 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
               </div>
             </section>
           )}
+          </div>
 
           <section className="hm-sec hm-att" aria-labelledby="hm-att">
             <div className="hm-head">
