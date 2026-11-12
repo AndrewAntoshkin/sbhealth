@@ -29,6 +29,8 @@ const fmt = (value: number, digits = 1) => value.toFixed(digits).replace('.', ',
 const toneInk = (value: number) => (value >= 75 ? RISK_INK.low : value >= 55 ? RISK_INK.watch : RISK_INK.high)
 const toneSoft = (value: number) => (value >= 75 ? RISK_SOFT.low : value >= 55 ? RISK_SOFT.watch : RISK_SOFT.high)
 
+const WIDE = '(min-width: 960px), (orientation: landscape) and (min-width: 640px) and (max-height: 520px)'
+
 export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelect: (id: SystemId) => void }) {
   const [shown, setShown] = useState(false)
   const [dy, setDy] = useState(0)
@@ -46,6 +48,8 @@ export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelec
 
   const down = (event: ReactPointerEvent<HTMLDivElement>) => {
     if ((event.target as HTMLElement).closest('button')) return
+    // на широком экране это боковой дровер: вниз его не тянут
+    if (window.matchMedia(WIDE).matches) return
     drag.current = { y: event.clientY, t: performance.now(), pid: event.pointerId }
     setDragging(true)
     try {
