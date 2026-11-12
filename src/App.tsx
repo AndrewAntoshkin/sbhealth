@@ -128,7 +128,10 @@ export function App() {
                     type="button"
                     className={on ? 'chip is-on' : 'chip'}
                     aria-pressed={on}
-                    style={{ ['--chip-color' as string]: MESH_COLOR[itemLevel] }}
+                    style={{
+                      ['--chip-color' as string]: MESH_COLOR[itemLevel],
+                      background: on ? RISK_SOFT[itemLevel] : undefined,
+                    }}
                     onClick={() => setSelected(on ? null : item.id)}
                   >
                     <i style={{ background: MESH_COLOR[itemLevel] }} />
@@ -145,7 +148,7 @@ export function App() {
                 <h2>{system.name}</h2>
                 <p className="covers">{system.covers}</p>
                 <div className="stats">
-                  <div className="stat">
+                  <div className="stat" style={{ background: RISK_SOFT[level] }}>
                     <span>Риск</span>
                     <b style={{ color: RISK_INK[level] }}>{RISK_LABEL[level]}</b>
                   </div>
@@ -154,29 +157,33 @@ export function App() {
                     <b style={{ color: RISK_INK[level] }}>{system.risk}</b>
                   </div>
                 </div>
-                <p className="lead">{system.summary}</p>
+                <article className="card">
+                  <p>{system.summary}</p>
+                  {expanded && <p className="meaning">{system.meaning}</p>}
+                </article>
                 {expanded && (
                   <>
-                    <p className="meaning">{system.meaning}</p>
-                    <p className="section-label">Показатели · демо</p>
-                    {system.metrics.map((metric) => (
-                      <div className="metric" key={metric.label}>
-                        <span>{metric.label}</span>
-                        <b>{metric.value}</b>
-                        <small>{metric.hint}</small>
-                      </div>
-                    ))}
-                    <p className="section-label">Что с этим делать</p>
-                    <div className="advice">{system.advice}</div>
-                    {asked ? (
-                      <div className="advice">
-                        Это демо: запись не создаётся. В продукте здесь открылась бы консультация терапевта.
-                        <div>
-                          <button className="text-btn" type="button" onClick={() => setAsked(false)}>
-                            Понятно
-                          </button>
+                    <article className="card">
+                      <h3>Показатели · демо</h3>
+                      {system.metrics.map((metric) => (
+                        <div className="metric" key={metric.label}>
+                          <span>{metric.label}</span>
+                          <b>{metric.value}</b>
+                          <small>{metric.hint}</small>
                         </div>
-                      </div>
+                      ))}
+                    </article>
+                    <article className="card">
+                      <h3>Что с этим делать</h3>
+                      <p>{system.advice}</p>
+                    </article>
+                    {asked ? (
+                      <article className="card">
+                        <p>Это демо: запись не создаётся. В продукте здесь открылась бы консультация терапевта.</p>
+                        <button className="text-btn" type="button" onClick={() => setAsked(false)}>
+                          Понятно
+                        </button>
+                      </article>
                     ) : (
                       <button className="primary" type="button" onClick={() => setAsked(true)}>
                         Обсудить с терапевтом
@@ -190,10 +197,12 @@ export function App() {
               </>
             ) : (
               <>
-                <h2>Системы</h2>
-                <p className="lead">
-                  {`Цвет на модели — уровень риска. Сейчас выше остальных ${top[0]}, ${top[1]} и ${top[2]}.`}
-                </p>
+                <article className="card spotlight">
+                  <p className="card-kicker">Куда смотреть сначала</p>
+                  <h2>Три зоны внимания</h2>
+                  <p>{`Выше остальных ${top[0]}, ${top[1]} и ${top[2]}. Цвет на модели — это риск, не диагноз.`}</p>
+                </article>
+                <h3 className="block-title">Все системы</h3>
                 <ul className="overview-list">
                   {ORDER.map((item) => {
                     const itemLevel = levelOf(item.risk)
