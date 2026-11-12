@@ -23,10 +23,11 @@ interface Part {
 interface Props {
   selected: SystemId | null
   resetSignal: number
+  low: boolean
   onSelect: (id: SystemId | null) => void
 }
 
-export function BodyCanvas({ selected, resetSignal, onSelect }: Props) {
+export function BodyCanvas({ selected, resetSignal, low, onSelect }: Props) {
   return (
     <>
       <Canvas
@@ -40,7 +41,7 @@ export function BodyCanvas({ selected, resetSignal, onSelect }: Props) {
         }}
       >
         <Suspense fallback={null}>
-          <Scene selected={selected} resetSignal={resetSignal} onSelect={onSelect} />
+          <Scene selected={selected} resetSignal={resetSignal} low={low} onSelect={onSelect} />
         </Suspense>
       </Canvas>
       <Loader />
@@ -91,7 +92,7 @@ function heroBox(root: THREE.Object3D, systemId: SystemId) {
   return box
 }
 
-function Scene({ selected, resetSignal, onSelect }: Props) {
+function Scene({ selected, resetSignal, low, onSelect }: Props) {
   const gltf = useGLTF(MODEL_URL)
   const group = useRef<THREE.Group>(null)
   const controls = useRef<CameraControlsImpl>(null)
@@ -154,12 +155,20 @@ function Scene({ selected, resetSignal, onSelect }: Props) {
     const box = heroBox(root, selected)
     if (box.isEmpty()) return
     const center = box.getCenter(new THREE.Vector3())
+    const size = box.getSize(new THREE.Vector3())
+    if (low && size.y > Math.max(size.x, size.z) * 1.25) center.y += size.y * 0.3
     const radius = box.getBoundingSphere(new THREE.Sphere()).radius
     const distance = THREE.MathUtils.clamp(radius * 3.6, selected === 'integumentary' ? 3.4 : 0.32, selected === 'integumentary' ? 4.4 : 1.15)
     const offset = new THREE.Vector3(0.28, 0.16, 1).normalize().multiplyScalar(distance)
     const position = center.clone().add(offset)
+    if (low && selected !== 'integumentary') {
+      const viewHeight = 2 * Math.tan((28 * Math.PI) / 360) * distance
+      const tuck = viewHeight * 0.28
+      center.y += tuck
+      position.y += tuck
+    }
     void rig.setLookAt(position.x, position.y, position.z, center.x, center.y, center.z, true)
-  }, [selected])
+  }, [selected, low])
 
   useEffect(() => {
     if (resetSignal === 0) return

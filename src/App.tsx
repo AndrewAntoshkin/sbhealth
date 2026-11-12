@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
 import { BodyCanvas } from './scene/BodyCanvas'
 import {
   MESH_COLOR,
@@ -10,6 +10,7 @@ import {
   levelOf,
   systemById,
   systemsByRisk,
+  type BodySystem,
   type RiskLevel,
   type SystemId,
 } from './data/systems'
@@ -43,6 +44,7 @@ export function App() {
   const wide = useWide()
   const system = selected ? systemById(selected) : null
   const level = system ? levelOf(system.risk) : null
+  const phoneFocus = Boolean(system && level && !wide)
   const expanded = wide || open
 
   useEffect(() => {
@@ -92,13 +94,14 @@ export function App() {
       </header>
 
       <div className="workspace">
-        <div className={selected && !open ? 'stage is-focus' : 'stage'}>
+        <div className={phoneFocus ? 'stage is-focus' : 'stage'}>
           <BodyCanvas
             selected={selected}
             resetSignal={resetSignal}
+            low={!wide}
             onSelect={(id) => setSelected(id)}
           />
-          {system && level && !open && (
+          {phoneFocus && system && level && (
             <div className="focus-ui">
               <button
                 className="back"
@@ -115,15 +118,7 @@ export function App() {
                   <span>{metric.label}</span>
                 </div>
               ))}
-              <div className="organ-card">
-                <div>
-                  <strong>{ORGAN_TITLE[system.id]}</strong>
-                  <p>{system.summary}</p>
-                </div>
-                <button type="button" aria-label="Подробнее" onClick={() => setOpen(true)}>
-                  <ArrowIcon />
-                </button>
-              </div>
+              <OrganSheet system={system} level={level} onBack={() => setSelected(null)} />
             </div>
           )}
           {!selected && (
@@ -309,18 +304,155 @@ function Mark() {
   )
 }
 
+const PEEK = 176
+
+function OrganSheet({
+  system,
+  level,
+  onBack,
+}: {
+  system: BodySystem
+  level: RiskLevel
+  onBack: () => void
+}) {
+  const [asked, setAsked] = useState(false)
+  const [peek, setPeek] = useState(PEEK)
+  const [height, setHeight] = useState(PEEK)
+  const [dragging, setDragging] = useState(false)
+  const heightRef = useRef(PEEK)
+  const peekRef = useRef(PEEK)
+  const drag = useRef<{ y: number; h: number; moved: boolean } | null>(null)
+  const sheetRef = useRef<HTMLElement>(null)
+
+  const setH = (value: number) => {
+    heightRef.current = value
+    setHeight(value)
+  }
+
+  const maxHeight = () => {
+    const stage = sheetRef.current?.parentElement?.clientHeight ?? window.innerHeight
+    return Math.max(peekRef.current + 120, Math.round(stage * 0.74))
+  }
+
+  useEffect(() => {
+    setAsked(false)
+    const grab = sheetRef.current?.querySelector('.sheet-grab')
+    const next = Math.ceil((grab?.getBoundingClientRect().height ?? PEEK) + 2)
+    peekRef.current = next
+    setPeek(next)
+    setH(next)
+  }, [system.id])
+
+  const onDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return
+    drag.current = { y: event.clientY, h: heightRef.current, moved: false }
+    setDragging(true)
+    event.currentTarget.setPointerCapture(event.pointerId)
+  }
+
+  const onMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (!drag.current) return
+    const delta = drag.current.y - event.clientY
+    if (Math.abs(delta) > 5) drag.current.moved = true
+    setH(Math.min(maxHeight(), Math.max(peekRef.current, drag.current.h + delta)))
+  }
+
+  const onUp = () => {
+    if (!drag.current) return
+    const moved = drag.current.moved
+    drag.current = null
+    setDragging(false)
+    const floor = peekRef.current
+    const max = maxHeight()
+    const current = heightRef.current
+    if (!moved) {
+      setH(current > floor + 24 ? floor : max)
+      return
+    }
+    setH(current > (floor + max) / 2 ? max : floor)
+  }
+
+  const grown = height > peek + 28
+
+  return (
+    <section
+      ref={sheetRef}
+      className={dragging ? 'sheet is-dragging' : grown ? 'sheet is-grown' : 'sheet'}
+      style={{ height }}
+      aria-label={ORGAN_TITLE[system.id]}
+    >
+      <div
+        className="sheet-grab"
+        onPointerDown={onDown}
+        onPointerMove={onMove}
+        onPointerUp={onUp}
+        onPointerCancel={onUp}
+        role="button"
+        tabIndex={0}
+        aria-expanded={grown}
+        aria-label={grown ? 'Свернуть шторку' : 'Потяните шторку вверх'}
+        onKeyDown={(event) => {
+          if (event.key !== 'Enter' && event.key !== ' ') return
+          event.preventDefault()
+          setH(grown ? peekRef.current : maxHeight())
+        }}
+      >
+        <i />
+        <strong>{ORGAN_TITLE[system.id]}</strong>
+        <p>{system.summary}</p>
+      </div>
+      <div className="sheet-body">
+        <div className="stats">
+          <div className="stat" style={{ background: RISK_SOFT[level] }}>
+            <span>Риск</span>
+            <b style={{ color: RISK_INK[level] }}>{RISK_LABEL[level]}</b>
+          </div>
+          <div className="stat">
+            <span>Балл из 100</span>
+            <b style={{ color: RISK_INK[level] }}>{system.risk}</b>
+          </div>
+        </div>
+        <article className="card">
+          <p>{system.meaning}</p>
+        </article>
+        <article className="card">
+          <h3>Показатели · демо</h3>
+          {system.metrics.map((metric) => (
+            <div className="metric" key={metric.label}>
+              <span>{metric.label}</span>
+              <b>{metric.value}</b>
+              <small>{metric.hint}</small>
+            </div>
+          ))}
+        </article>
+        <article className="card">
+          <h3>Что с этим делать</h3>
+          <p>{system.advice}</p>
+        </article>
+        {asked ? (
+          <article className="card">
+            <p>Это демо: запись не создаётся. В продукте здесь открылась бы консультация терапевта.</p>
+            <button className="text-btn" type="button" onClick={() => setAsked(false)}>
+              Понятно
+            </button>
+          </article>
+        ) : (
+          <button className="primary" type="button" onClick={() => setAsked(true)}>
+            Обсудить с терапевтом
+          </button>
+        )}
+        <button className="text-btn" type="button" onClick={onBack}>
+          Ко всему телу
+        </button>
+      </div>
+    </section>
+  )
+}
+
 function BackIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
       <path d="M12.5 4.5 7 10l5.5 5.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
-}
-
-function ArrowIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <path d="M4 9h10M10 5l4 4-4 4" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   )
 }

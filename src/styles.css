@@ -152,8 +152,8 @@ h1 {
 }
 
 .back,
-.organ-card button,
-.float-pill { pointer-events: auto; }
+.float-pill,
+.sheet { pointer-events: auto; }
 
 .back {
   position: absolute;
@@ -178,12 +178,15 @@ h1 {
   min-height: 36px;
   padding: 6px 12px 6px 8px;
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.92);
-  box-shadow: 0 8px 20px rgba(20, 24, 28, 0.08);
+  background: rgba(255, 255, 255, 0.46);
+  border: 1px solid rgba(255, 255, 255, 0.62);
+  box-shadow: 0 8px 22px rgba(20, 24, 28, 0.08);
+  backdrop-filter: blur(16px) saturate(1.35);
+  -webkit-backdrop-filter: blur(16px) saturate(1.35);
 }
 
-.float-pill.is-a { top: 22%; right: 8%; }
-.float-pill.is-b { top: 46%; left: 6%; }
+.float-pill.is-a { top: 40%; right: 6%; }
+.float-pill.is-b { top: 58%; left: 5%; }
 
 .float-pill i {
   width: 8px;
@@ -202,50 +205,84 @@ h1 {
   font-weight: 600;
 }
 
-.organ-card {
+.sheet {
   position: absolute;
-  left: 14px;
-  right: 14px;
-  bottom: 16px;
+  left: 12px;
+  right: 12px;
+  bottom: max(12px, env(safe-area-inset-bottom));
   display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 14px 16px 18px;
-  border-radius: 24px;
-  background: rgba(232, 236, 242, 0.94);
-  box-shadow: 0 12px 32px rgba(20, 24, 28, 0.08);
-  pointer-events: none;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 28px;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  background: rgba(226, 231, 237, 0.58);
+  box-shadow: 0 18px 40px rgba(20, 24, 28, 0.12);
+  backdrop-filter: blur(28px) saturate(1.45);
+  -webkit-backdrop-filter: blur(28px) saturate(1.45);
+  transition:
+    height 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+    left 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+    right 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+    bottom 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-radius 0.28s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
-.organ-card strong {
+.sheet.is-grown {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  border-radius: 28px 28px 0 0;
+  border-bottom: 0;
+  background: rgba(232, 236, 241, 0.72);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+.sheet.is-dragging { transition: none; }
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet { transition: none; }
+}
+
+.sheet-grab {
+  flex: 0 0 auto;
+  padding: 8px 20px 14px;
+  touch-action: none;
+  cursor: grab;
+}
+
+.sheet-grab:active { cursor: grabbing; }
+
+.sheet-grab i {
+  display: block;
+  width: 36px;
+  height: 4px;
+  margin: 0 auto 10px;
+  border-radius: 99px;
+  background: rgba(80, 90, 104, 0.28);
+}
+
+.sheet-grab strong {
   display: block;
   font-size: 18px;
   letter-spacing: -0.03em;
   line-height: 1.2;
 }
 
-.organ-card p {
+.sheet-grab p {
   margin: 6px 0 0;
   color: var(--ink-soft);
   font-size: 14px;
   line-height: 1.4;
-  display: -webkit-box;
-  -webkit-line-clamp: 3;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
 }
 
-.organ-card button {
-  width: 46px;
-  height: 46px;
-  flex: 0 0 auto;
-  border: 0;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 6px 16px rgba(20, 24, 28, 0.1);
-  color: var(--ink);
-  display: grid;
-  place-items: center;
+.sheet:not(.is-grown):not(.is-dragging) .sheet-body { display: none; }
+
+.sheet-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 0 16px 16px;
 }
 
 .reset {
