@@ -281,40 +281,162 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
 }
 
 .dx-metrics {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
   margin: 0;
-  padding: 2px 18px;
-  border-radius: 24px;
-  background: #fff;
-  box-shadow: 0 16px 30px -24px rgba(var(--tint), 0.55);
+  padding: 0;
+  list-style: none;
 }
 
 .dx-metric {
-  display: flex;
+  display: grid;
+  grid-template-columns: 52px 1fr auto;
   align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 14px 0;
-  border-top: 1px solid var(--line);
+  gap: 14px;
+  width: 100%;
+  padding: 8px 18px 8px 8px;
+  border: 0;
+  border-radius: 26px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  box-shadow: 0 14px 26px -22px rgba(var(--tint), 0.6);
+  transition: box-shadow 0.25s var(--ease), background-color 0.25s var(--ease), transform 0.25s var(--ease);
+  -webkit-tap-highlight-color: transparent;
 }
 
-.dx-metric:first-child { border-top: 0; }
+.dx-metric:active { transform: scale(0.985); }
+.dx-metric:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-.dx-metric dt { font-size: 15px; font-weight: 500; line-height: 1.25; }
+.dx-metric.is-on {
+  box-shadow:
+    0 0 0 1.5px var(--c),
+    0 18px 30px -20px color-mix(in srgb, var(--c) 55%, rgba(var(--tint), 0.4));
+}
 
-.dx-metric dt small {
+.dx-ico {
+  display: grid;
+  place-items: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 18px;
+  background: var(--soft);
+  color: var(--ink-risk);
+  transition: background-color 0.25s var(--ease), color 0.25s var(--ease);
+}
+
+.dx-metric.is-on .dx-ico { background: var(--c); color: var(--ink); }
+
+.dx-lab { font-size: 15px; font-weight: 500; line-height: 1.25; letter-spacing: -0.02em; }
+
+.dx-lab small {
   display: block;
   margin-top: 2px;
   color: var(--muted);
   font-size: 12.5px;
   font-weight: 400;
+  letter-spacing: 0;
 }
 
-.dx-metric dd {
-  margin: 0;
-  font-size: 17px;
-  font-weight: 600;
+.dx-val {
+  font-size: 16px;
+  font-weight: 650;
   letter-spacing: -0.03em;
   text-align: right;
+  max-width: 9em;
+}
+
+/* ——— Картинка органа с точками интереса ——— */
+.dx-visual {
+  position: relative;
+  aspect-ratio: 1;
+  margin: 0;
+  overflow: hidden;
+  border-radius: 34px;
+  background:
+    radial-gradient(90% 70% at 50% 8%, #fff 0, rgba(255, 255, 255, 0) 70%),
+    linear-gradient(165deg, var(--soft), color-mix(in srgb, var(--soft) 55%, #dfe5ec));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 26px 40px -30px rgba(var(--tint), 0.6);
+}
+
+.dx-visual > img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: drop-shadow(0 22px 22px rgba(var(--tint), 0.28));
+  pointer-events: none;
+  user-select: none;
+}
+
+.dx-visual > .risk-tag-pill { position: absolute; top: 14px; left: 14px; background: rgba(255, 255, 255, 0.86); }
+
+.dx-dot {
+  position: absolute;
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  margin: -22px 0 0 -22px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.dx-dot::before {
+  content: '';
+  position: absolute;
+  inset: 13px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(var(--tint), 0.45);
+  transition: inset 0.3s var(--ease), background-color 0.3s var(--ease);
+}
+
+.dx-dot::after {
+  content: '';
+  position: absolute;
+  inset: 8px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.9);
+  opacity: 0;
+}
+
+.dx-dot.is-on::before { inset: 11px; background: var(--ink); box-shadow: 0 0 0 4px #fff, 0 6px 16px rgba(var(--tint), 0.5); }
+.dx-dot.is-on::after { animation: dot-pulse 1.9s var(--ease) infinite; }
+.dx-dot:focus-visible { outline: 2px solid var(--ink); outline-offset: 0; }
+
+@keyframes dot-pulse { 0% { opacity: 0.9; transform: scale(0.7); } 100% { opacity: 0; transform: scale(1.9); } }
+
+.dx-bubble {
+  position: absolute;
+  left: 14px;
+  bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 16px 11px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.88);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 14px 26px -16px rgba(var(--tint), 0.6);
+  animation: dx-in 0.35s var(--ease) both;
+}
+
+.dx-bubble span { color: var(--muted); font-size: 12px; font-weight: 500; }
+.dx-bubble b { font-size: 18px; font-weight: 650; letter-spacing: -0.04em; line-height: 1.1; }
+
+@media (prefers-reduced-motion: reduce) {
+  .dx-dot.is-on::after { animation: none; opacity: 0.6; }
 }
 
 .dx-note {

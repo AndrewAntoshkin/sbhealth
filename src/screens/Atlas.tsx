@@ -22,7 +22,9 @@ import {
   type RiskLevel,
   type SystemId,
 } from '../data/systems'
-import { Fine, INDEX, Legend, Meter, ORDER, ORGAN_TITLE, RiskTag, ScoreChip, TONE, TOP_TEXT, thumb } from '../shared'
+import { Fine, INDEX, Legend, Meter, ORDER, ORGAN_TITLE, RiskTag, ScoreChip, TONE, TOP_TEXT, photo, thumb } from '../shared'
+import { metricIcon } from '../metricIcons'
+import HOTSPOTS from '../data/hotspots.json'
 
 // 3D-сцена (three + r3f) — отдельный чанк: интерфейс рисуется, пока он качается
 const BodyCanvas = lazy(() => import('../scene/BodyCanvas').then((m) => ({ default: m.BodyCanvas })))
@@ -327,6 +329,15 @@ function OrganDetail({
   head?: boolean
 }) {
   const [asked, setAsked] = useState(false)
+  const [active, setActive] = useState(0)
+  useEffect(() => {
+    // шторка свёрнута (visibility: hidden) — картинку подгружаем и декодируем заранее
+    const img = new Image()
+    img.src = photo(system.id)
+    img.decode?.().catch(() => undefined)
+  }, [system.id])
+  const spots = HOTSPOTS[system.id as keyof typeof HOTSPOTS] as number[][] | undefined
+  const current = system.metrics[active] ?? system.metrics[0]
   return (
     <div className="dx" style={{ ['--c' as string]: MESH_COLOR[level], ['--soft' as string]: RISK_SOFT[level], ['--ink-risk' as string]: RISK_INK[level] }}>
       {head && (
@@ -335,6 +346,28 @@ function OrganDetail({
           <p>{system.covers}</p>
         </header>
       )}
+
+      <figure className="dx-visual">
+        <img src={photo(system.id)} alt={`${ORGAN_TITLE[system.id]}: изображение органа`} width="720" height="720" decoding="async" draggable={false} />
+        <RiskTag level={level} score={system.risk} />
+        {spots?.map(([x, y], index) => (
+          <button
+            key={index}
+            type="button"
+            className={index === active ? 'dx-dot is-on' : 'dx-dot'}
+            style={{ left: `${x * 100}%`, top: `${y * 100}%` }}
+            aria-pressed={index === active}
+            aria-label={system.metrics[index]?.label ?? `Точка ${index + 1}`}
+            onClick={() => setActive(index)}
+          />
+        ))}
+        {current && (
+          <figcaption className="dx-bubble" key={active}>
+            <span>{current.label}</span>
+            <b>{current.value}</b>
+          </figcaption>
+        )}
+      </figure>
 
       <section className="dx-score" aria-label="Уровень риска">
         <div className="dx-num">
@@ -349,23 +382,31 @@ function OrganDetail({
       </section>
 
       <section className="dx-sec">
-        <h3>Что это значит</h3>
-        <p>{system.meaning}</p>
+        <h3>Показатели · демо</h3>
+        <ul className="dx-metrics">
+          {system.metrics.map((metric, index) => {
+            const MetricIcon = metricIcon(metric.label)
+            return (
+              <li key={metric.label}>
+                <button type="button" className={index === active ? 'dx-metric is-on' : 'dx-metric'} aria-pressed={index === active} onClick={() => setActive(index)}>
+                  <span className="dx-ico">
+                    <MetricIcon size={22} weight="duotone" aria-hidden="true" />
+                  </span>
+                  <span className="dx-lab">
+                    {metric.label}
+                    <small>{metric.hint}</small>
+                  </span>
+                  <b className="dx-val">{metric.value}</b>
+                </button>
+              </li>
+            )
+          })}
+        </ul>
       </section>
 
       <section className="dx-sec">
-        <h3>Показатели · демо</h3>
-        <dl className="dx-metrics">
-          {system.metrics.map((metric) => (
-            <div className="dx-metric" key={metric.label}>
-              <dt>
-                {metric.label}
-                <small>{metric.hint}</small>
-              </dt>
-              <dd>{metric.value}</dd>
-            </div>
-          ))}
-        </dl>
+        <h3>Что это значит</h3>
+        <p>{system.meaning}</p>
       </section>
 
       <section className="dx-sec">
@@ -583,13 +624,14 @@ function Sheet({
 
   useEffect(() => {
     if (!height || !peek) return
-    onMetrics(peek + SHEET_GAP, Math.min(height, maxHeight()) + SHEET_GAP)
+    // камера кадрирует тело по прежнему пределу (78%), даже когда шторка раскрыта на всю высоту
+    onMetrics(peek + SHEET_GAP, Math.min(height, cameraMax()) + SHEET_GAP)
   }, [height, peek, onMetrics])
 
-  const maxHeight = () => {
-    const stage = sheetRef.current?.parentElement?.clientHeight ?? window.innerHeight
-    return Math.max(peekRef.current + 160, Math.round(stage * 0.78))
-  }
+  const stageHeight = () => sheetRef.current?.parentElement?.clientHeight ?? window.innerHeight
+  const cameraMax = () => Math.max(peekRef.current + 160, Math.round(stageHeight() * 0.78))
+  // шторка с деталью органа раскрывается почти на весь экран, как в мобильных паттернах
+  const maxHeight = () => (deck ? Math.max(peekRef.current + 160, stageHeight() - 6) : cameraMax())
 
   const onDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return

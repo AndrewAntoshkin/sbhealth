@@ -18,6 +18,8 @@ export const ORGAN_TITLE: Record<SystemId, string> = {
 
 export const thumb = (id: SystemId) => `${import.meta.env.BASE_URL}organs/${id}.webp`
 
+export const photo = (id: SystemId) => `${import.meta.env.BASE_URL}organs/lg/${id}.webp`
+
 export const ORDER = systemsByRisk()
 export const INDEX = healthIndex()
 export const TONE = indexTone(INDEX)
