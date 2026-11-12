@@ -51,6 +51,7 @@ export function App() {
   const [resetSignal, setResetSignal] = useState(0)
   const [peek, setPeek] = useState(0)
   const [inset, setInset] = useState(0)
+  const [hint, setHint] = useState(true)
   const wide = useWide()
   const system = selected ? systemById(selected) : null
   const level = system ? levelOf(system.risk) : null
@@ -58,6 +59,15 @@ export function App() {
   const onMetrics = useCallback((covered: number, height: number) => {
     setPeek(covered)
     setInset(height)
+  }, [])
+
+  useEffect(() => {
+    if (selected) setHint(false)
+  }, [selected])
+
+  useEffect(() => {
+    const timer = window.setTimeout(() => setHint(false), 14000)
+    return () => window.clearTimeout(timer)
   }, [])
 
   useEffect(() => {
@@ -92,16 +102,15 @@ export function App() {
         <div className="brand">
           <Mark />
           <div>
-            <p className="kicker">Демо · не диагноз</p>
             <h1>Системы организма</h1>
-            <p className="tone">{TONE}</p>
+            <p className="kicker">Демо · не диагноз</p>
           </div>
         </div>
-        <ScoreRing value={INDEX} />
+        <ScoreChip value={INDEX} tone={TONE} />
       </header>
 
       <div className="workspace">
-        <div className="stage">
+        <div className="stage" onPointerDownCapture={() => setHint(false)}>
           <BodyCanvas
             selected={selected}
             resetSignal={resetSignal}
@@ -117,16 +126,19 @@ export function App() {
                   <button className="round at-left" type="button" aria-label="Ко всему телу" onClick={() => setSelected(null)}>
                     <BackIcon />
                   </button>
-                  {system.metrics.slice(0, 2).map((metric, index) => (
-                    <div className={index === 0 ? 'float-pill is-a' : 'float-pill is-b'} key={metric.label}>
-                      <i style={{ background: MESH_COLOR[level] }} />
-                      <b>{metric.value}</b>
-                      <span>{metric.label}</span>
-                    </div>
-                  ))}
+                  <div className="pill-row" style={{ bottom: peek + 12 }}>
+                    {system.metrics.slice(0, 2).map((metric) => (
+                      <div className="float-pill" key={`${system.id}-${metric.label}`}>
+                        <i style={{ background: MESH_COLOR[level] }} />
+                        <b>{metric.value}</b>
+                        <span>{metric.label}</span>
+                      </div>
+                    ))}
+                  </div>
                   <Sheet
-                    key={system.id}
+                    key="detail"
                     label={ORGAN_TITLE[system.id]}
+                    resetKey={system.id}
                     onMetrics={onMetrics}
                     grab={
                       <>
@@ -139,8 +151,15 @@ export function App() {
                         <p>{system.summary}</p>
                       </>
                     }
+                    rail={<OrganRail selected={system.id} onSelect={setSelected} />}
                   >
-                    <OrganDetail system={system} level={level} backLabel="Ко всему телу" onBack={() => setSelected(null)} />
+                    <OrganDetail
+                      key={system.id}
+                      system={system}
+                      level={level}
+                      backLabel="Ко всему телу"
+                      onBack={() => setSelected(null)}
+                    />
                     <Fine />
                   </Sheet>
                 </>
@@ -154,6 +173,12 @@ export function App() {
                   >
                     <ResetIcon />
                   </button>
+                  {hint && (
+                    <div className="hint" role="status" style={{ bottom: peek + 14 }}>
+                      <i />
+                      Нажмите на орган
+                    </div>
+                  )}
                   <Sheet
                     key="overview"
                     label="Системы и риск"
@@ -163,10 +188,10 @@ export function App() {
                         <p className="card-kicker">Куда смотреть сначала</p>
                         <strong>Три зоны внимания</strong>
                         <p>{TOP_TEXT}</p>
+                        <Legend />
                       </>
                     }
                   >
-                    <Legend />
                     <h3 className="block-title">Все системы</h3>
                     <OverviewList onSelect={setSelected} />
                     <Fine />
@@ -357,6 +382,53 @@ function OrganDetail({
   )
 }
 
+function OrganRail({ selected, onSelect }: { selected: SystemId; onSelect: (id: SystemId) => void }) {
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const rail = ref.current
+    const active = rail?.querySelector<HTMLElement>('[aria-pressed="true"]')
+    if (!rail || !active) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    rail.scrollTo({
+      left: active.offsetLeft - (rail.clientWidth - active.offsetWidth) / 2,
+      behavior: reduce ? 'auto' : 'smooth',
+    })
+  }, [selected])
+
+  return (
+    <div className="organ-rail" ref={ref} role="group" aria-label="Другие системы">
+      {ORDER.map((item) => {
+        const itemLevel = levelOf(item.risk)
+        const on = item.id === selected
+        return (
+          <button
+            key={item.id}
+            type="button"
+            className={on ? 'rcard is-on' : 'rcard'}
+            aria-pressed={on}
+            style={{
+              ['--c' as string]: MESH_COLOR[itemLevel],
+              background: on ? RISK_SOFT[itemLevel] : undefined,
+            }}
+            onClick={() => onSelect(item.id)}
+          >
+            <span className="rdot" style={{ background: on ? 'rgba(255,255,255,0.7)' : RISK_SOFT[itemLevel] }}>
+              <i style={{ background: MESH_COLOR[itemLevel] }} />
+            </span>
+            <span className="rtext">
+              <b>{ORGAN_TITLE[item.id]}</b>
+              <small style={{ color: RISK_INK[itemLevel] }}>
+                {RISK_LABEL[itemLevel]} · {item.risk}
+              </small>
+            </span>
+          </button>
+        )
+      })}
+    </div>
+  )
+}
+
 function Fine() {
   return (
     <p className="fine">
@@ -374,12 +446,27 @@ function Fine() {
   )
 }
 
-function ScoreRing({ value }: { value: number }) {
-  const tone = value >= 75 ? RISK_INK.low : value >= 55 ? RISK_INK.watch : RISK_INK.high
+function ScoreChip({ value, tone }: { value: number; tone: string }) {
+  const color = value >= 75 ? RISK_INK.low : value >= 55 ? RISK_INK.watch : RISK_INK.high
+  const circumference = 2 * Math.PI * 16
   return (
-    <div className="score" role="img" aria-label={`Индекс здоровья ${value} из 100. Выше — спокойнее.`}>
-      <strong style={{ color: tone }}>{value}</strong>
-      <span>из 100</span>
+    <div className="score" role="img" aria-label={`Индекс здоровья ${value} из 100. ${tone}. Выше — спокойнее.`}>
+      <svg viewBox="0 0 40 40" width="40" height="40" aria-hidden="true">
+        <circle cx="20" cy="20" r="16" fill="none" stroke="rgba(28, 40, 56, 0.09)" strokeWidth="4" />
+        <circle
+          cx="20"
+          cy="20"
+          r="16"
+          fill="none"
+          stroke={color}
+          strokeWidth="4"
+          strokeLinecap="round"
+          strokeDasharray={`${(circumference * value) / 100} ${circumference}`}
+          transform="rotate(-90 20 20)"
+        />
+      </svg>
+      <strong style={{ color }}>{value}</strong>
+      <span>Индекс</span>
     </div>
   )
 }
@@ -387,7 +474,7 @@ function ScoreRing({ value }: { value: number }) {
 function Mark() {
   return (
     <svg className="mark" viewBox="0 0 40 40" aria-hidden="true">
-      <rect width="40" height="40" rx="12" fill="#21A038" />
+      <rect width="40" height="40" fill="#21A038" />
       <circle cx="20" cy="12" r="3.4" fill="#fff" />
       <path fill="#fff" d="M14.2 18.4c.2-2 2-3.2 5.8-3.2s5.6 1.2 5.8 3.2V28c0 1.7-1.2 2.8-3 2.8h-5.6c-1.8 0-3-1.1-3-2.8V18.4z" />
       <circle cx="23.6" cy="21.6" r="1.7" fill="#FF0D65" />
@@ -399,13 +486,17 @@ const SHEET_GAP = 12
 
 function Sheet({
   grab,
+  rail,
   children,
   label,
+  resetKey,
   onMetrics,
 }: {
   grab: ReactNode
+  rail?: ReactNode
   children: ReactNode
   label: string
+  resetKey?: string
   onMetrics: (covered: number, height: number) => void
 }) {
   const [height, setHeight] = useState(0)
@@ -415,7 +506,8 @@ function Sheet({
   const peekRef = useRef(0)
   const drag = useRef<{ y: number; h: number; moved: boolean; lastY: number; lastT: number; v: number } | null>(null)
   const sheetRef = useRef<HTMLElement>(null)
-  const grabRef = useRef<HTMLDivElement>(null)
+  const headRef = useRef<HTMLDivElement>(null)
+  const bodyRef = useRef<HTMLDivElement>(null)
 
   const setH = (value: number) => {
     heightRef.current = value
@@ -423,7 +515,7 @@ function Sheet({
   }
 
   useLayoutEffect(() => {
-    const el = grabRef.current
+    const el = headRef.current
     if (!el) return
     const measure = () => {
       const next = Math.ceil(el.getBoundingClientRect().height)
@@ -438,6 +530,10 @@ function Sheet({
     observer.observe(el)
     return () => observer.disconnect()
   }, [])
+
+  useEffect(() => {
+    bodyRef.current?.scrollTo({ top: 0 })
+  }, [resetKey])
 
   useEffect(() => {
     if (!height || !peek) return
@@ -503,29 +599,36 @@ function Sheet({
   const className = ['sheet', grown && 'is-grown', dragging && 'is-dragging'].filter(Boolean).join(' ')
 
   return (
-    <section ref={sheetRef} className={className} style={height ? { height } : undefined} aria-label={label}>
-      <div
-        ref={grabRef}
-        className="sheet-grab"
-        onPointerDown={onDown}
-        onPointerMove={onMove}
-        onPointerUp={onUp}
-        onPointerCancel={onUp}
-        role="button"
-        tabIndex={0}
-        aria-expanded={grown}
-        aria-label={grown ? `${label}: свернуть шторку` : `${label}: потяните шторку вверх`}
-        onKeyDown={(event) => {
-          if (event.key !== 'Enter' && event.key !== ' ') return
-          event.preventDefault()
-          setH(grown ? peekRef.current : maxHeight())
-        }}
-      >
-        <i />
-        {grab}
-      </div>
-      <div className="sheet-body">{children}</div>
-    </section>
+    <>
+      {grown && <div className="sheet-scrim" onClick={() => setH(peekRef.current)} aria-hidden="true" />}
+      <section ref={sheetRef} className={className} style={height ? { height } : undefined} aria-label={label}>
+        <div ref={headRef} className="sheet-top">
+          <div
+            className="sheet-grab"
+            onPointerDown={onDown}
+            onPointerMove={onMove}
+            onPointerUp={onUp}
+            onPointerCancel={onUp}
+            role="button"
+            tabIndex={0}
+            aria-expanded={grown}
+            aria-label={grown ? `${label}: свернуть шторку` : `${label}: потяните шторку вверх`}
+            onKeyDown={(event) => {
+              if (event.key !== 'Enter' && event.key !== ' ') return
+              event.preventDefault()
+              setH(grown ? peekRef.current : maxHeight())
+            }}
+          >
+            <i />
+            {grab}
+          </div>
+          {rail}
+        </div>
+        <div ref={bodyRef} className="sheet-body">
+          {children}
+        </div>
+      </section>
+    </>
   )
 }
 

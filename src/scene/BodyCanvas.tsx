@@ -274,7 +274,7 @@ function Scene({ selected, resetSignal, peek, inset, onSelect }: Props) {
               key={`${part.id}-${index}`}
               geometry={part.geometry}
               material={isSkin ? skinMaterial : materials[part.id]}
-              renderOrder={isSkin ? 2 : 1}
+              renderOrder={isSkin ? 2 : part.id === selected ? 3 : 1}
               userData={{ system: part.id }}
             />
           )
