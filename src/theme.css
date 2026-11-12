@@ -476,3 +476,32 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
 .dx-head p { margin: 6px 0 0; color: var(--muted); font-size: 14.5px; line-height: 1.35; }
 
 .sheet-body { padding-top: 6px; }
+
+/* ——— Карточки систем: сплошные и одной высоты ——— */
+.dcard {
+  height: 124px;
+  align-items: center;
+  background: #fff;
+  opacity: 1;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: 0 14px 26px -20px rgba(var(--tint), 0.55);
+}
+
+.dcard.is-on {
+  box-shadow:
+    0 20px 34px -16px color-mix(in srgb, var(--c) 45%, rgba(var(--tint), 0.35)),
+    0 0 0 1px rgba(16, 21, 28, 0.04);
+}
+
+.dsum { min-height: 2.7em; }
+
+.sheet.is-deck.is-grown .deck .dcard { height: auto; }
+.sheet.is-deck.is-grown .dsum { min-height: 0; }
+
+/* плашки показателей поверх модели */
+.float-pill {
+  background: rgba(255, 255, 255, 0.97);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
