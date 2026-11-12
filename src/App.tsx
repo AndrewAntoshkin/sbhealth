@@ -40,6 +40,8 @@ const ORGAN_TITLE: Record<SystemId, string> = {
   urinary: 'Почки',
 }
 
+const thumb = (id: SystemId) => `${import.meta.env.BASE_URL}organs/${id}.webp`
+
 const ORDER = systemsByRisk()
 const INDEX = healthIndex()
 const TONE = indexTone(INDEX)
@@ -142,7 +144,7 @@ export function App() {
                   <button className="round at-left" type="button" aria-label="Ко всему телу" onClick={() => setSelected(null)}>
                     <BackIcon />
                   </button>
-                  <div className="pill-row" style={{ bottom: peek + 12 }}>
+                  <div className="pill-row" style={{ bottom: Math.max(0, peek - 2) }}>
                     {system.metrics.slice(0, 2).map((metric) => (
                       <div className="float-pill" key={`${system.id}-${metric.label}`}>
                         <i style={{ background: MESH_COLOR[level] }} />
@@ -156,18 +158,7 @@ export function App() {
                     label={ORGAN_TITLE[system.id]}
                     resetKey={system.id}
                     onMetrics={onMetrics}
-                    grab={
-                      <>
-                        <div className="sheet-head">
-                          <strong>{ORGAN_TITLE[system.id]}</strong>
-                          <span className="risk-tag" style={{ background: RISK_SOFT[level], color: RISK_INK[level] }}>
-                            {RISK_LABEL[level]} · {system.risk}
-                          </span>
-                        </div>
-                        <p>{system.summary}</p>
-                      </>
-                    }
-                    rail={<OrganRail selected={system.id} onSelect={setSelected} />}
+                    deck={({ grown, toggle }) => <OrganDeck selected={system.id} onSelect={setSelected} grown={grown} toggle={toggle} />}
                   >
                     <OrganDetail
                       key={system.id}
@@ -327,7 +318,7 @@ function OverviewList({ onSelect }: { onSelect: (id: SystemId) => void }) {
           <li key={item.id}>
             <button type="button" onClick={() => onSelect(item.id)}>
               <span className="swatch" style={{ background: RISK_SOFT[itemLevel] }}>
-                <i style={{ background: MESH_COLOR[itemLevel] }} />
+                <img src={thumb(item.id)} alt="" width="48" height="48" loading="lazy" decoding="async" draggable={false} />
               </span>
               <span className="copy">
                 <span className="name">{item.name}</span>
@@ -408,50 +399,128 @@ function OrganDetail({
   )
 }
 
-function OrganRail({ selected, onSelect }: { selected: SystemId; onSelect: (id: SystemId) => void }) {
+function OrganDeck({
+  selected,
+  onSelect,
+  grown,
+  toggle,
+}: {
+  selected: SystemId
+  onSelect: (id: SystemId) => void
+  grown: boolean
+  toggle: () => void
+}) {
   const ref = useRef<HTMLDivElement>(null)
+  const timer = useRef(0)
+  const first = useRef(true)
+
+  const center = useCallback((id: SystemId, smooth: boolean) => {
+    const scroller = ref.current
+    const card = scroller?.querySelector<HTMLElement>(`[data-card="${id}"]`)
+    if (!scroller || !card) return
+    const left = card.offsetLeft + card.offsetWidth / 2 - scroller.clientWidth / 2
+    if (Math.abs(scroller.scrollLeft - left) < 2) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    scroller.scrollTo({ left, behavior: smooth && !reduce ? 'smooth' : 'auto' })
+  }, [])
+
+  useLayoutEffect(() => {
+    center(selected, !first.current)
+    first.current = false
+  }, [selected, center])
+
+  // колесо мыши: одно движение — одна карточка (горизонтальный тачпад листает сам браузер)
+  const selectedRef = useRef(selected)
+  selectedRef.current = selected
+  const pick = useRef(onSelect)
+  pick.current = onSelect
 
   useEffect(() => {
-    const rail = ref.current
-    const active = rail?.querySelector<HTMLElement>('[aria-pressed="true"]')
-    if (!rail || !active) return
-    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    rail.scrollTo({
-      left: active.offsetLeft - (rail.clientWidth - active.offsetWidth) / 2,
-      behavior: reduce ? 'auto' : 'smooth',
-    })
-  }, [selected])
+    const scroller = ref.current
+    if (!scroller) return
+    let acc = 0
+    let lock = 0
+    const onWheel = (event: WheelEvent) => {
+      if (Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return
+      event.preventDefault()
+      const now = performance.now()
+      if (now < lock) return
+      acc += event.deltaY
+      if (Math.abs(acc) < 30) return
+      const index = ORDER.findIndex((item) => item.id === selectedRef.current)
+      const next = ORDER[Math.min(ORDER.length - 1, Math.max(0, index + (acc > 0 ? 1 : -1)))]
+      acc = 0
+      lock = now + 380
+      if (next.id !== selectedRef.current) pick.current(next.id)
+    }
+    scroller.addEventListener('wheel', onWheel, { passive: false })
+    return () => scroller.removeEventListener('wheel', onWheel)
+  }, [])
+
+  // когда лента остановилась, выбираем карточку по центру
+  const onScroll = () => {
+    window.clearTimeout(timer.current)
+    timer.current = window.setTimeout(() => {
+      const scroller = ref.current
+      if (!scroller) return
+      const mid = scroller.scrollLeft + scroller.clientWidth / 2
+      let best: string | null = null
+      let gap = Infinity
+      scroller.querySelectorAll<HTMLElement>('[data-card]').forEach((card) => {
+        const distance = Math.abs(card.offsetLeft + card.offsetWidth / 2 - mid)
+        if (distance < gap) {
+          gap = distance
+          best = card.dataset.card ?? null
+        }
+      })
+      if (best && best !== selected) onSelect(best as SystemId)
+    }, 120)
+  }
+
+  useEffect(() => () => window.clearTimeout(timer.current), [])
 
   return (
-    <div className="organ-rail" ref={ref} role="group" aria-label="Другие системы">
-      {ORDER.map((item) => {
-        const itemLevel = levelOf(item.risk)
-        const on = item.id === selected
-        return (
-          <button
-            key={item.id}
-            type="button"
-            className={on ? 'rcard is-on' : 'rcard'}
-            aria-pressed={on}
-            style={{
-              ['--c' as string]: MESH_COLOR[itemLevel],
-              background: on ? RISK_SOFT[itemLevel] : undefined,
-            }}
-            onClick={() => onSelect(item.id)}
-          >
-            <span className="rdot" style={{ background: on ? 'rgba(255,255,255,0.7)' : RISK_SOFT[itemLevel] }}>
-              <i style={{ background: MESH_COLOR[itemLevel] }} />
-            </span>
-            <span className="rtext">
-              <b>{ORGAN_TITLE[item.id]}</b>
-              <small style={{ color: RISK_INK[itemLevel] }}>
-                {RISK_LABEL[itemLevel]} · {item.risk}
-              </small>
-            </span>
-          </button>
-        )
-      })}
-    </div>
+    <>
+      <i className="deck-handle" aria-hidden="true" />
+      <div className="deck" data-deck ref={ref} role="group" aria-label="Системы организма" onScroll={onScroll}>
+        {ORDER.map((item) => {
+          const itemLevel = levelOf(item.risk)
+          const on = item.id === selected
+          return (
+            <button
+              key={item.id}
+              type="button"
+              className={on ? 'dcard is-on' : 'dcard'}
+              data-card={item.id}
+              aria-current={on ? 'true' : undefined}
+              aria-expanded={on ? grown : undefined}
+              aria-label={`${ORGAN_TITLE[item.id]}, ${RISK_LABEL[itemLevel]}, ${item.risk}.${on ? (grown ? ' Свернуть подробности' : ' Открыть подробности') : ' Показать'}`}
+              tabIndex={on ? 0 : -1}
+              style={{ ['--c' as string]: MESH_COLOR[itemLevel], ['--soft' as string]: RISK_SOFT[itemLevel] }}
+              onClick={() => (on ? toggle() : onSelect(item.id))}
+            >
+              <span className="dthumb">
+                <img src={thumb(item.id)} alt="" width="84" height="84" draggable={false} decoding="async" />
+              </span>
+              <span className="dbody">
+                <span className="dname">{ORGAN_TITLE[item.id]}</span>
+                <span className="dtag" style={{ color: RISK_INK[itemLevel], background: RISK_SOFT[itemLevel] }}>
+                  {RISK_LABEL[itemLevel]} · {item.risk}
+                </span>
+                <span className="dsum">{item.summary}</span>
+              </span>
+              {on && (
+                <span className="dchev" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="14" height="14">
+                    <path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </span>
+              )}
+            </button>
+          )
+        })}
+      </div>
+    </>
   )
 }
 
@@ -556,13 +625,15 @@ const SHEET_GAP = 12
 function Sheet({
   grab,
   rail,
+  deck,
   children,
   label,
   resetKey,
   onMetrics,
 }: {
-  grab: ReactNode
+  grab?: ReactNode
   rail?: ReactNode
+  deck?: (api: { grown: boolean; toggle: () => void }) => ReactNode
   children: ReactNode
   label: string
   resetKey?: string
@@ -576,6 +647,9 @@ function Sheet({
   const drag = useRef<{ y: number; h: number; moved: boolean; lastY: number; lastT: number; v: number } | null>(null)
   const sheetRef = useRef<HTMLElement>(null)
   const headRef = useRef<HTMLDivElement>(null)
+  const topRef = headRef
+  const deck_ = useRef<{ x: number; y: number; axis: '' | 'x' | 'y'; left: number } | null>(null)
+  const suppressClick = useRef(false)
   const bodyRef = useRef<HTMLDivElement>(null)
 
   const setH = (value: number) => {
@@ -632,15 +706,13 @@ function Sheet({
     }
   }
 
-  const onMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const state = drag.current
-    if (!state) return
+  const moveHeight = (state: NonNullable<typeof drag.current>, clientY: number) => {
     const now = performance.now()
     const dt = Math.max(now - state.lastT, 1)
-    state.v = (state.lastY - event.clientY) / dt
-    state.lastY = event.clientY
+    state.v = (state.lastY - clientY) / dt
+    state.lastY = clientY
     state.lastT = now
-    const delta = state.y - event.clientY
+    const delta = state.y - clientY
     if (Math.abs(delta) > 5) state.moved = true
     const raw = state.h + delta
     const max = maxHeight()
@@ -649,11 +721,7 @@ function Sheet({
     setH(Math.max(peekRef.current, next))
   }
 
-  const onUp = () => {
-    const state = drag.current
-    if (!state) return
-    drag.current = null
-    setDragging(false)
+  const settleHeight = (state: NonNullable<typeof drag.current>) => {
     const floor = peekRef.current
     const max = maxHeight()
     const current = heightRef.current
@@ -668,44 +736,178 @@ function Sheet({
     setH(current > (floor + max) / 2 ? max : floor)
   }
 
+  const onMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const state = drag.current
+    if (!state) return
+    moveHeight(state, event.clientY)
+  }
+
+  const onUp = () => {
+    const state = drag.current
+    if (!state) return
+    drag.current = null
+    setDragging(false)
+    settleHeight(state)
+  }
+
+  // Лента карточек: вертикальный жест тянет шторку, горизонтальный листает ленту
+  // (на тач-экранах её листает браузер, мышью — мы сами).
+  const getScroller = () => topRef.current?.querySelector<HTMLElement>('[data-deck]') ?? null
+
+  const snapDeck = (scroller: HTMLElement) => {
+    scroller.style.scrollSnapType = ''
+    const mid = scroller.scrollLeft + scroller.clientWidth / 2
+    let target = scroller.scrollLeft
+    let gap = Infinity
+    scroller.querySelectorAll<HTMLElement>('[data-card]').forEach((card) => {
+      const cardMid = card.offsetLeft + card.offsetWidth / 2
+      if (Math.abs(cardMid - mid) < gap) {
+        gap = Math.abs(cardMid - mid)
+        target = cardMid - scroller.clientWidth / 2
+      }
+    })
+    scroller.scrollTo({ left: target, behavior: 'smooth' })
+  }
+
+  const onDeckDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+    if (event.pointerType === 'mouse' && event.button !== 0) return
+    deck_.current = {
+      x: event.clientX,
+      y: event.clientY,
+      axis: '',
+      left: getScroller()?.scrollLeft ?? 0,
+    }
+    drag.current = {
+      y: event.clientY,
+      h: heightRef.current,
+      moved: false,
+      lastY: event.clientY,
+      lastT: performance.now(),
+      v: 0,
+    }
+  }
+
+  const onDeckMove = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const gesture = deck_.current
+    const state = drag.current
+    if (!gesture || !state) return
+    const dx = event.clientX - gesture.x
+    const dy = event.clientY - gesture.y
+    if (!gesture.axis) {
+      if (Math.max(Math.abs(dx), Math.abs(dy)) < 7) return
+      gesture.axis = Math.abs(dy) > Math.abs(dx) ? 'y' : 'x'
+      if (gesture.axis === 'y') {
+        setDragging(true)
+        try {
+          event.currentTarget.setPointerCapture(event.pointerId)
+        } catch {
+          /* указатель уже отпущен */
+        }
+      } else if (event.pointerType === 'mouse') {
+        const scroller = getScroller()
+        if (scroller) scroller.style.scrollSnapType = 'none'
+        try {
+          event.currentTarget.setPointerCapture(event.pointerId)
+        } catch {
+          /* указатель уже отпущен */
+        }
+      } else {
+        // на тач-экране горизонталь забирает браузер
+        deck_.current = null
+        drag.current = null
+        return
+      }
+    }
+    if (gesture.axis === 'x') {
+      const scroller = getScroller()
+      if (scroller) scroller.scrollLeft = gesture.left - dx
+      return
+    }
+    moveHeight(state, event.clientY)
+  }
+
+  const onDeckUp = (event: ReactPointerEvent<HTMLDivElement>) => {
+    const gesture = deck_.current
+    const state = drag.current
+    deck_.current = null
+    drag.current = null
+    if (!gesture || !gesture.axis) return
+    suppressClick.current = true
+    window.setTimeout(() => {
+      suppressClick.current = false
+    }, 60)
+    if (gesture.axis === 'x') {
+      const scroller = getScroller()
+      if (scroller) snapDeck(scroller)
+      return
+    }
+    setDragging(false)
+    if (state && event.type !== 'pointercancel') settleHeight(state)
+    else if (state) setH(peekRef.current)
+  }
+
+  const toggleSheet = () => setH(heightRef.current > peekRef.current + 24 ? peekRef.current : maxHeight())
+
   const grown = height > peek + 28
-  const className = ['sheet', grown && 'is-grown', dragging && 'is-dragging'].filter(Boolean).join(' ')
+  const className = ['sheet', deck && 'is-deck', grown && 'is-grown', dragging && 'is-dragging'].filter(Boolean).join(' ')
 
   return (
     <>
       {grown && <div className="sheet-scrim" onClick={() => setH(peekRef.current)} aria-hidden="true" />}
       <section ref={sheetRef} className={className} style={height ? { height } : undefined} aria-label={label}>
-        <div ref={headRef} className="sheet-top">
-          <div
-            className="sheet-grab"
-            onPointerDown={onDown}
-            onPointerMove={onMove}
-            onPointerUp={onUp}
-            onPointerCancel={onUp}
-            role="button"
-            tabIndex={0}
-            aria-expanded={grown}
-            aria-label={grown ? `${label}: свернуть шторку` : `${label}: потяните шторку вверх`}
-            onKeyDown={(event) => {
-              if (event.key === 'ArrowUp') {
-                event.preventDefault()
-                setH(maxHeight())
-                return
+        <div
+          ref={headRef}
+          className={deck ? 'sheet-top is-deck' : 'sheet-top'}
+          {...(deck
+            ? {
+                onPointerDown: onDeckDown,
+                onPointerMove: onDeckMove,
+                onPointerUp: onDeckUp,
+                onPointerCancel: onDeckUp,
+                onClickCapture: (event: React.MouseEvent) => {
+                  if (!suppressClick.current) return
+                  event.stopPropagation()
+                  event.preventDefault()
+                },
               }
-              if (event.key === 'ArrowDown') {
-                event.preventDefault()
-                setH(peekRef.current)
-                return
-              }
-              if (event.key !== 'Enter' && event.key !== ' ') return
-              event.preventDefault()
-              setH(grown ? peekRef.current : maxHeight())
-            }}
-          >
-            <i />
-            {grab}
-          </div>
-          {rail}
+            : {})}
+        >
+          {deck ? (
+            deck({ grown, toggle: toggleSheet })
+          ) : (
+            <>
+              <div
+                className="sheet-grab"
+                onPointerDown={onDown}
+                onPointerMove={onMove}
+                onPointerUp={onUp}
+                onPointerCancel={onUp}
+                role="button"
+                tabIndex={0}
+                aria-expanded={grown}
+                aria-label={grown ? `${label}: свернуть шторку` : `${label}: потяните шторку вверх`}
+                onKeyDown={(event) => {
+                  if (event.key === 'ArrowUp') {
+                    event.preventDefault()
+                    setH(maxHeight())
+                    return
+                  }
+                  if (event.key === 'ArrowDown') {
+                    event.preventDefault()
+                    setH(peekRef.current)
+                    return
+                  }
+                  if (event.key !== 'Enter' && event.key !== ' ') return
+                  event.preventDefault()
+                  setH(grown ? peekRef.current : maxHeight())
+                }}
+              >
+                <i />
+                {grab}
+              </div>
+              {rail}
+            </>
+          )}
         </div>
         <div ref={bodyRef} className="sheet-body">
           {children}

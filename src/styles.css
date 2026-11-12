@@ -397,87 +397,215 @@ h1 {
   font-variant-numeric: tabular-nums;
 }
 
-.organ-rail {
+/* ——— Лента карточек систем вместо «карточки в карточке» ——— */
+.sheet.is-deck {
+  left: 0;
+  right: 0;
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) - 10px);
+  transition:
+    height 0.3s var(--ease),
+    bottom 0.3s var(--ease),
+    border-radius 0.3s var(--ease),
+    background-color 0.3s var(--ease),
+    box-shadow 0.3s var(--ease),
+    border-color 0.3s var(--ease),
+    backdrop-filter 0.3s var(--ease),
+    -webkit-backdrop-filter 0.3s var(--ease);
+}
+
+/* свёрнуто: контейнера нет, у каждой системы своя карточка */
+.sheet.is-deck:not(.is-grown) {
+  overflow: visible;
+  border-color: transparent;
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: blur(0px);
+  -webkit-backdrop-filter: blur(0px);
+}
+
+.sheet.is-deck.is-grown { bottom: 0; }
+
+.sheet-top.is-deck {
+  position: relative;
+  touch-action: pan-x;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.deck-handle {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: 1;
+  width: 38px;
+  height: 5px;
+  margin-left: -19px;
+  border-radius: 99px;
+  background: rgba(60, 70, 84, 0.22);
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  pointer-events: none;
+}
+
+.sheet.is-grown .deck-handle { opacity: 1; }
+
+.deck {
+  --cw: min(344px, calc(100vw - 68px));
   position: relative;
   display: flex;
-  gap: 8px;
+  gap: 10px;
   overflow-x: auto;
-  padding: 2px 16px 14px;
-  scroll-padding-inline: 16px;
-  scroll-snap-type: x proximity;
+  padding: 14px calc((100% - var(--cw)) / 2) 16px;
+  scroll-snap-type: x mandatory;
   scrollbar-width: none;
   overscroll-behavior-x: contain;
   touch-action: pan-x;
+  cursor: grab;
 }
 
-.organ-rail::-webkit-scrollbar { display: none; }
+.deck::-webkit-scrollbar { display: none; }
 
-.rcard {
-  flex: 0 0 auto;
+.dcard {
+  position: relative;
+  flex: 0 0 var(--cw);
   scroll-snap-align: center;
-  display: flex;
+  scroll-snap-stop: always;
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr);
   align-items: center;
-  gap: 10px;
-  padding: 8px 16px 8px 8px;
-  border: 1.5px solid transparent;
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 4px 14px rgba(28, 40, 56, 0.06);
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  border-radius: 28px;
+  background: rgba(255, 255, 255, 0.84);
+  -webkit-backdrop-filter: blur(26px) saturate(1.7);
+  backdrop-filter: blur(26px) saturate(1.7);
+  box-shadow:
+    0 16px 30px -12px rgba(28, 40, 56, 0.26),
+    0 2px 6px rgba(28, 40, 56, 0.05);
   text-align: left;
+  opacity: 0.8;
+  transform: scale(0.95);
   transition:
-    background-color 0.2s,
-    border-color 0.2s,
-    transform 0.2s;
+    transform 0.3s var(--ease),
+    opacity 0.3s var(--ease),
+    background-color 0.3s var(--ease),
+    box-shadow 0.3s var(--ease);
 }
 
-.rcard:active { transform: scale(0.97); }
-
-.rcard.is-on {
-  border-color: var(--c);
-  box-shadow: none;
+.dcard.is-on {
+  opacity: 1;
+  transform: none;
+  box-shadow:
+    0 0 0 1.5px color-mix(in srgb, var(--c) 75%, transparent),
+    0 16px 30px -12px rgba(28, 40, 56, 0.26);
 }
 
-.rcard:focus-visible {
-  outline: 2px solid var(--pink);
-  outline-offset: 2px;
-}
+.dcard:focus-visible { outline: 2px solid var(--pink); outline-offset: 2px; }
 
-.rdot {
-  width: 34px;
-  height: 34px;
-  flex: 0 0 auto;
-  border-radius: 12px;
+.dthumb {
+  width: 84px;
+  height: 84px;
   display: grid;
   place-items: center;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--soft);
 }
 
-.rdot i {
-  width: 9px;
-  height: 9px;
-  border-radius: 50%;
+.dthumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-drag: none;
 }
 
-.rtext {
+.dbody {
   display: flex;
+  min-width: 0;
   flex-direction: column;
-  gap: 1px;
-  white-space: nowrap;
+  align-items: flex-start;
+  gap: 6px;
 }
 
-.rtext b {
-  font-size: 14px;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
+.dname {
+  font-family: 'SB Sans Display', Manrope, 'Segoe UI', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  line-height: 1.15;
 }
 
-.rtext small {
+.dcard.is-on .dname { padding-right: 30px; }
+
+.dtag {
+  padding: 4px 10px;
+  border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
   line-height: 1.25;
+  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
+.dsum {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  color: var(--ink-soft);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.dchev {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 28px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(28, 40, 56, 0.07);
+  color: var(--ink-soft);
+  transition: transform 0.3s var(--ease);
+}
+
+.sheet.is-grown .dchev { transform: rotate(180deg); }
+
+/* раскрыто: контейнер стал шторкой, соседние карточки уходят на второй план */
+.sheet.is-grown .dcard:not(.is-on) {
+  border-color: transparent;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+  opacity: 0.55;
+}
+
+.sheet.is-grown .dcard.is-on {
+  border-color: transparent;
+  background: transparent;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+  box-shadow: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dcard, .dchev, .deck-handle { transition: none; }
+}
+
 .sheet:not(.is-grown) .sheet-body { visibility: hidden; }
+
+.swatch img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
 
 .sheet-body {
   flex: 1;
@@ -854,12 +982,13 @@ h1 {
 }
 
 .swatch {
-  width: 40px;
-  height: 40px;
-  border-radius: 14px;
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
   display: grid;
   place-items: center;
   flex: 0 0 auto;
+  overflow: hidden;
 }
 
 .swatch i {
@@ -1568,7 +1697,6 @@ h1 {
 .chip,
 .overview-list button,
 .ix-pick,
-.rcard,
 .text-btn,
 .ix-load {
   transition-property: transform, background-color, border-color, box-shadow, color;
@@ -1642,8 +1770,8 @@ h1 {
   .score,
   .sheet,
   .sheet-grab:focus-visible,
-  .rcard,
-  .rdot,
+  .dcard,
+  .dthumb,
   .stat,
   .card,
   .primary,

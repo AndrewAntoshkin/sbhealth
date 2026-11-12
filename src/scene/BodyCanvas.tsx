@@ -373,6 +373,7 @@ function Picker({
 
 function Studio() {
   const { gl, scene } = useThree()
+  if (import.meta.env.DEV) (window as unknown as { __atlas?: unknown }).__atlas = { scene } // для scripts/render-thumbs.cjs
   useEffect(() => {
     const pmrem = new THREE.PMREMGenerator(gl)
     const env = pmrem.fromScene(new RoomEnvironment(), 0.04).texture
