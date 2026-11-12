@@ -146,43 +146,45 @@ export function Messages({ threadId, go, onTab }: { threadId: string | null; go:
     <>
       <main className={open ? 'screen msgs has-thread' : 'screen msgs'}>
         <div className="mg-wrap">
-          <aside className="mg-list" aria-label="Диалоги">
-            <div className="mg-title">
-              <h1>Сообщения</h1>
-              <TopActions go={go} />
-            </div>
-            <ul>
-              {sorted.map((thread) => {
-                const last = thread.msgs[thread.msgs.length - 1]
-                return (
-                  <li key={thread.id}>
-                    <button type="button" className={thread.id === open?.id ? 'mg-row is-on' : 'mg-row'} aria-current={thread.id === open?.id ? 'true' : undefined} onClick={() => go(`#/messages/${thread.id}`)}>
-                      <Avatar thread={thread} />
-                      <span className="mg-copy">
-                        <span className="mg-top">
-                          <b>{thread.name}</b>
-                          {last && <time dateTime={new Date(last.at).toISOString()}>{rel(last.at)}</time>}
+          <header className="mg-title">
+            <h1>Сообщения</h1>
+            <TopActions go={go} />
+          </header>
+          <div className="mg-body">
+            <aside className="mg-list" aria-label="Диалоги">
+              <ul>
+                {sorted.map((thread) => {
+                  const last = thread.msgs[thread.msgs.length - 1]
+                  return (
+                    <li key={thread.id}>
+                      <button type="button" className={thread.id === open?.id ? 'mg-row is-on' : 'mg-row'} aria-current={thread.id === open?.id ? 'true' : undefined} onClick={() => go(`#/messages/${thread.id}`)}>
+                        <Avatar thread={thread} />
+                        <span className="mg-copy">
+                          <span className="mg-top">
+                            <b>{thread.name}</b>
+                            {last && <time dateTime={new Date(last.at).toISOString()}>{rel(last.at)}</time>}
+                          </span>
+                          <span className="mg-prev">
+                            <span>{last ? `${last.from === 'me' ? 'Вы: ' : ''}${last.text}` : thread.role}</span>
+                            {thread.unread > 0 && <em aria-label={`Непрочитано: ${thread.unread}`}>{thread.unread}</em>}
+                          </span>
                         </span>
-                        <span className="mg-prev">
-                          <span>{last ? `${last.from === 'me' ? 'Вы: ' : ''}${last.text}` : thread.role}</span>
-                          {thread.unread > 0 && <em aria-label={`Непрочитано: ${thread.unread}`}>{thread.unread}</em>}
-                        </span>
-                      </span>
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-            {!threads.some((t) => t.doctor) && <p className="mg-hint">Диалог с врачом появится здесь после записи на приём.</p>}
-          </aside>
+                      </button>
+                    </li>
+                  )
+                })}
+              </ul>
+              {!threads.some((t) => t.doctor) && <p className="mg-hint">Диалог с врачом появится здесь после записи на приём.</p>}
+            </aside>
 
-          {open ? (
-            <ThreadView key={open.id} thread={open} onBack={() => go('#/messages')} />
-          ) : (
-            <div className="mg-empty">
-              <p>Выберите диалог, чтобы прочитать сообщения.</p>
-            </div>
-          )}
+            {open ? (
+              <ThreadView key={open.id} thread={open} onBack={() => go('#/messages')} />
+            ) : (
+              <div className="mg-empty">
+                <p>Выберите диалог, чтобы прочитать сообщения.</p>
+              </div>
+            )}
+          </div>
         </div>
       </main>
 
