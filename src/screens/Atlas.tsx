@@ -11,7 +11,9 @@ import {
 } from 'react'
 import { ArrowCounterClockwise, ArrowRight, CalendarCheck, CaretLeft } from '@phosphor-icons/react'
 import { Booking } from '../Booking'
-import { DOCTOR, MODE_LABEL, cancelAppointment, useCore, type Appointment } from '../store'
+import { Dock, type DockTab } from './Dock'
+import { doctorById, doctorFor, roleTo } from '../data/doctors'
+import { MODE_LABEL, cancelAppointment, useCore, type Appointment } from '../store'
 import { fmtDay, fmtTime, inDays } from '../time'
 import { IndexSheet } from '../IndexSheet'
 import {
@@ -34,7 +36,7 @@ const BodyCanvas = lazy(() => import('../scene/BodyCanvas').then((m) => ({ defau
 const POSTER = `${import.meta.env.BASE_URL}poster.webp`
 
 
-export function Atlas({ initial, onHome, go }: { initial: SystemId | null; onHome: () => void; go: (to: string) => void }) {
+export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab: (tab: DockTab) => void; go: (to: string) => void }) {
   const [booking, setBooking] = useState<{ systemId: SystemId; replace?: Appointment } | null>(null)
   const [selected, setSelected] = useState<SystemId | null>(initial)
   const [resetSignal, setResetSignal] = useState(0)
@@ -107,14 +109,11 @@ export function Atlas({ initial, onHome, go }: { initial: SystemId | null; onHom
   return (
     <div className="app atlas">
       <header className="top" inert={scoreOpen || undefined}>
-        <button
-          className="back"
-          type="button"
-          aria-label={selected ? 'Ко всему телу' : 'На главную'}
-          onClick={selected ? () => setSelected(null) : onHome}
-        >
-          <CaretLeft size={20} weight="bold" aria-hidden="true" />
-        </button>
+        {selected && (
+          <button className="back" type="button" aria-label="Ко всему телу" onClick={() => setSelected(null)}>
+            <CaretLeft size={20} weight="bold" aria-hidden="true" />
+          </button>
+        )}
         <div className="top-title">
           <h1>Атлас тела</h1>
           <p className="kicker">13 систем · демо</p>
@@ -282,14 +281,18 @@ export function Atlas({ initial, onHome, go }: { initial: SystemId | null; onHom
         )}
       </div>
 
+      <div inert={scoreOpen || undefined}>
+        <Dock active="atlas" onGo={(tab) => onTab(tab)} />
+      </div>
+
       {booking && (
         <Booking
           systemId={booking.systemId}
           replace={booking.replace}
           onClose={() => setBooking(null)}
-          onChat={() => {
+          onChat={(to) => {
             setBooking(null)
-            go(`#/messages/${DOCTOR.id}`)
+            go(to)
           }}
         />
       )}
@@ -447,7 +450,7 @@ function OrganDetail({
             <span>{fmtTime(appt.start)}</span>
           </p>
           <p className="dx-appt-sub">
-            {DOCTOR.name} · {MODE_LABEL[appt.mode].toLowerCase()}
+            {doctorById(appt.doctorId).name} · {MODE_LABEL[appt.mode].toLowerCase()}
           </p>
           {cancelling ? (
             <div className="dx-appt-actions" role="group" aria-label="Отменить запись?">
@@ -471,7 +474,7 @@ function OrganDetail({
         </section>
       ) : (
         <button className="primary" type="button" onClick={() => onBook()}>
-          Записаться к терапевту
+          Записаться к {roleTo(doctorFor(system.id))}
           <ArrowRight size={18} weight="bold" aria-hidden="true" />
         </button>
       )}

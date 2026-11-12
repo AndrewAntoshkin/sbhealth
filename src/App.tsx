@@ -4,6 +4,8 @@ import { SYSTEMS, type SystemId } from './data/systems'
 import { Home } from './screens/Home'
 import { Messages } from './screens/Messages'
 import { Profile } from './screens/Profile'
+import { DoctorProfile, Doctors } from './screens/Doctors'
+import { Learn } from './screens/Learn'
 import type { DockTab } from './screens/Dock'
 import { Toaster } from './Toaster'
 import { Start } from './screens/Start'
@@ -12,12 +14,14 @@ import { Start } from './screens/Start'
 const loadAtlas = () => import('./screens/Atlas')
 const Atlas = lazy(() => loadAtlas().then((m) => ({ default: m.Atlas })))
 
-type Route = { name: 'start' } | { name: 'home'; open?: 'index' | 'notifications' } | { name: 'messages'; id: string | null } | { name: 'profile' } | { name: 'atlas'; id: SystemId | null }
+type Route = { name: 'start' } | { name: 'home'; open?: 'index' } | { name: 'doctors'; id: string | null } | { name: 'learn'; id: string | null } | { name: 'messages'; id: string | null } | { name: 'profile' } | { name: 'atlas'; id: SystemId | null }
 
 function parse(hash: string): Route {
   const [, name, id] = hash.replace(/^#/, '').split('/')
-  if (name === 'home') return { name: 'home', open: id === 'index' || id === 'notifications' ? id : undefined }
+  if (name === 'home') return { name: 'home', open: id === 'index' ? id : undefined }
   if (name === 'profile') return { name: 'profile' }
+  if (name === 'doctors') return { name: 'doctors', id: id || null }
+  if (name === 'learn') return { name: 'learn', id: id || null }
   if (name === 'messages') return { name: 'messages', id: id || null }
   if (name === 'atlas') return { name: 'atlas', id: SYSTEMS.some((item) => item.id === id) ? (id as SystemId) : null }
   return { name: 'start' }
@@ -63,18 +67,20 @@ export function App() {
     if (tab === 'home') go('#/home')
     if (tab === 'atlas') go('#/atlas')
     if (tab === 'messages') go('#/messages')
-    if (tab === 'profile') go('#/profile')
+    if (tab === 'doctors') go('#/doctors')
   }
 
   let screen
   if (route.name === 'start') screen = <Start onStart={() => go('#/home')} />
   else if (route.name === 'home') screen = <Home key={route.open ?? 'home'} open={route.open} go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} />
   else if (route.name === 'profile') screen = <Profile go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} onTab={onTab} />
+  else if (route.name === 'doctors') screen = route.id ? <DoctorProfile key={route.id} id={route.id} go={go} onAtlas={(id) => go(`#/atlas/${id}`)} /> : <Doctors go={go} onTab={onTab} />
+  else if (route.name === 'learn') screen = <Learn id={route.id} go={go} onTab={onTab} onAtlas={(id) => go(`#/atlas/${id}`)} />
   else if (route.name === 'messages') screen = <Messages threadId={route.id} go={go} onTab={onTab} />
   else
     screen = (
       <Suspense fallback={<div className="app atlas" />}>
-        <Atlas key={route.id ?? 'all'} initial={route.id} onHome={() => go('#/home')} go={go} />
+        <Atlas key={route.id ?? 'all'} initial={route.id} onTab={onTab} go={go} />
       </Suspense>
     )
 

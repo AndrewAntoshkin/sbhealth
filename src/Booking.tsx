@@ -3,8 +3,9 @@ import { ArrowRight, Buildings, CalendarPlus, Check, ChatCircleText, MapPin, Vid
 import { MESH_COLOR, RISK_INK, RISK_SOFT, levelOf, systemById, type SystemId } from './data/systems'
 import { Overlay } from './Overlay'
 import { metricIcon } from './metricIcons'
-import { ORGAN_TITLE, RiskTag, thumb } from './shared'
-import { CLINIC, DOCTOR, DURATION, MODE_LABEL, book, getPrefs, type Appointment, type Mode } from './store'
+import { DoctorAva, ORGAN_TITLE, RiskTag, thumb } from './shared'
+import { doctorById, doctorFor, roleTo, threadOf } from './data/doctors'
+import { CLINIC, DURATION, MODE_LABEL, book, getPrefs, type Appointment, type Mode } from './store'
 import { cap, fmtDay, fmtDayLong, fmtTime, inDays } from './time'
 
 const TIMES = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '14:00', '14:30', '15:00', '15:30', '17:00', '17:30', '18:00', '18:30']
@@ -41,7 +42,20 @@ function buildDays(): Date[] {
   return out
 }
 
-const isFree = (day: Date, time: string, now: number) => stamp(day, time) > now + 60 * 60_000 && !busy(dayKey(day), time)
+const isFree = (doctorId: string, day: Date, time: string, now: number) => stamp(day, time) > now + 60 * 60_000 && !busy(doctorId + dayKey(day), time)
+
+/** Ближайшие свободные окна врача: для карточек и профиля. */
+export function freeSlots(doctorId: string, count = 4): number[] {
+  const now = Date.now()
+  const out: number[] = []
+  for (const day of buildDays()) {
+    for (const t of TIMES) {
+      if (isFree(doctorId, day, t, now)) out.push(stamp(day, t))
+      if (out.length >= count) return out
+    }
+  }
+  return out
+}
 
 function downloadIcs(appt: Appointment) {
   const pad = (n: number) => String(n).padStart(2, '0')
@@ -59,8 +73,8 @@ function downloadIcs(appt: Appointment) {
     `DTSTAMP:${utc(Date.now())}`,
     `DTSTART:${utc(appt.start)}`,
     `DTEND:${utc(end)}`,
-    `SUMMARY:Приём терапевта (демо)`,
-    `DESCRIPTION:${DOCTOR.name}. Тема: ${ORGAN_TITLE[appt.systemId]}.`,
+    `SUMMARY:Приём: ${doctorById(appt.doctorId).role.toLowerCase()} (демо)`,
+    `DESCRIPTION:${doctorById(appt.doctorId).name}. Тема: ${ORGAN_TITLE[appt.systemId]}.`,
     `LOCATION:${appt.mode === 'video' ? 'Видеосвязь' : CLINIC}`,
     'END:VEVENT',
     'END:VCALENDAR',
@@ -80,24 +94,33 @@ type Step = 'pick' | 'review' | 'done'
 
 export function Booking({
   systemId,
+  doctorId,
+  initialStart,
   replace,
   onClose,
   onChat,
 }: {
   systemId: SystemId
+  doctorId?: string
+  initialStart?: number
   replace?: Appointment | null
   onClose: () => void
-  onChat: () => void
+  onChat: (to: string) => void
 }) {
+  const doctor = doctorById(replace?.doctorId ?? doctorId ?? doctorFor(systemId).id)
   const system = systemById(systemId)
   const level = levelOf(system.risk)
   const now = useMemo(() => Date.now(), [])
   const days = useMemo(buildDays, [])
   const [dayIndex, setDayIndex] = useState(() => {
-    const first = days.findIndex((d) => TIMES.some((t) => isFree(d, t, now)))
+    if (initialStart) {
+      const match = days.findIndex((d) => dayKey(d) === dayKey(new Date(initialStart)))
+      if (match >= 0) return match
+    }
+    const first = days.findIndex((d) => TIMES.some((t) => isFree(doctor.id, d, t, now)))
     return Math.max(first, 0)
   })
-  const [time, setTime] = useState<string | null>(null)
+  const [time, setTime] = useState<string | null>(initialStart ? fmtTime(initialStart) : null)
   const [mode, setMode] = useState<Mode>(replace?.mode ?? 'video')
   const [share, setShare] = useState(replace?.share ?? getPrefs().share)
   const [step, setStep] = useState<Step>('pick')
@@ -112,7 +135,7 @@ export function Booking({
     if (!start || pending) return
     setPending(true)
     window.setTimeout(() => {
-      setDone(book({ systemId, start, mode, share, replaceId: replace?.id }))
+      setDone(book({ systemId, doctorId: doctor.id, start, mode, share, replaceId: replace?.id }))
       setPending(false)
       setStep('done')
     }, 900)
@@ -131,7 +154,7 @@ export function Booking({
   }
 
   const title = step === 'done' ? (moved ? 'Запись перенесена' : 'Вы записаны') : step === 'review' ? 'Проверьте запись' : moved ? 'Новое время' : 'Выберите время'
-  const kicker = step === 'done' ? 'Готово' : moved ? 'Перенос приёма' : 'Запись к терапевту'
+  const kicker = step === 'done' ? 'Готово' : moved ? 'Перенос приёма' : `Запись к ${roleTo(doctor)}`
 
   return (
     <Overlay
@@ -198,10 +221,10 @@ export function Booking({
               <p className="bk-sub">{system.summary}</p>
             </div>
             <div className="bk-doc">
-              <span className="bk-ava" aria-hidden="true">{DOCTOR.initials}</span>
+              <DoctorAva id={doctor.id} size={44} className="bk-ava" />
               <span>
-                <b>{DOCTOR.name}</b>
-                <small>Терапевт · стаж 12 лет · 4,9 ★ (демо)</small>
+                <b>{doctor.name}</b>
+                <small>{doctor.role} · стаж {doctor.years} лет · {doctor.rating} ★ (демо)</small>
               </span>
             </div>
           </section>
@@ -227,7 +250,7 @@ export function Booking({
             <div className="bk-days" role="radiogroup" aria-label="Дата приёма">
               {days.map((d, i) => {
                 const ts = d.getTime()
-                const free = TIMES.some((t) => isFree(d, t, now))
+                const free = TIMES.some((t) => isFree(doctor.id, d, t, now))
                 const word = i === 0 ? 'сегодня' : inDays(ts, now) === 'завтра' ? 'завтра' : fmtDay(ts).split(',')[0]
                 return (
                   <button
@@ -260,7 +283,7 @@ export function Booking({
                   <p>{group.label}</p>
                   <div className="bk-slots" role="radiogroup" aria-label={group.label}>
                     {slots.map((t) => {
-                      const free = isFree(day, t, now)
+                      const free = isFree(doctor.id, day, t, now)
                       return (
                         <button key={t} type="button" role="radio" aria-checked={time === t} disabled={!free} className={time === t ? 'bk-slot is-on' : 'bk-slot'} onClick={() => setTime(t)}>
                           {t}
@@ -284,7 +307,7 @@ export function Booking({
               <span>{fmtTime(start)} · {DURATION[mode]} мин · {inDays(start, now)}</span>
             </p>
             <dl className="bk-rows">
-              <div><dt>Врач</dt><dd>{DOCTOR.name}, терапевт</dd></div>
+              <div><dt>Врач</dt><dd>{doctor.name}, {doctor.role.toLowerCase()}</dd></div>
               <div><dt>Формат</dt><dd>{mode === 'video' ? 'Видеосвязь, ссылка придёт в сообщении' : CLINIC}</dd></div>
               <div><dt>Тема</dt><dd>{ORGAN_TITLE[systemId]}</dd></div>
             </dl>
@@ -342,7 +365,7 @@ export function Booking({
               <span>{fmtTime(done.start)} · {DURATION[done.mode]} мин · {inDays(done.start, now)}</span>
             </p>
             <dl className="bk-rows">
-              <div><dt>Врач</dt><dd>{DOCTOR.name}, терапевт</dd></div>
+              <div><dt>Врач</dt><dd>{doctor.name}, {doctor.role.toLowerCase()}</dd></div>
               <div>
                 <dt>Где</dt>
                 <dd>
@@ -363,7 +386,7 @@ export function Booking({
               <CalendarPlus size={20} weight="duotone" aria-hidden="true" />
               В календарь
             </button>
-            <button type="button" className="bk-ghost" onClick={onChat}>
+            <button type="button" className="bk-ghost" onClick={() => onChat(`#/messages/${threadOf(doctor.id)}`)}>
               <ChatCircleText size={20} weight="duotone" aria-hidden="true" />
               Написать врачу
             </button>

@@ -1,12 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUp, CalendarCheck, CaretLeft } from '@phosphor-icons/react'
-import { DOCTOR, MODE_LABEL, nextAppointment, sendMessage, useCore, useLive, viewThread, type Appointment, type Msg, type Thread } from '../store'
+import { doctorById } from '../data/doctors'
+import { TopActions } from '../TopActions'
+import { MODE_LABEL, nextAppointment, sendMessage, useCore, useLive, viewThread, type Appointment, type Msg, type Thread } from '../store'
 import { fmtTime, fmtWhen, rel } from '../time'
 import { Dock, type DockTab } from './Dock'
 
 const QUICK = ['Что взять с собой?', 'Хочу перенести', 'Спасибо']
 
-function Avatar({ thread, size = 48 }: { thread: Pick<Thread, 'initials' | 'doctor'>; size?: number }) {
+function Avatar({ thread, size = 48 }: { thread: Pick<Thread, 'initials' | 'doctor' | 'avatar'>; size?: number }) {
+  if (thread.avatar) return <img className="mg-ava is-photo" src={thread.avatar} alt="" width={size} height={size} style={{ width: size, height: size }} decoding="async" draggable={false} />
   return (
     <span className={thread.doctor ? 'mg-ava is-doc' : 'mg-ava'} style={{ width: size, height: size }} aria-hidden="true">
       {thread.initials}
@@ -20,7 +23,7 @@ function ApptCard({ appt }: { appt: Appointment }) {
       <CalendarCheck size={20} weight="duotone" aria-hidden="true" />
       <span>
         <b>{fmtWhen(appt.start)}</b>
-        <small>{appt.status === 'cancelled' ? 'Запись отменена или перенесена' : `${MODE_LABEL[appt.mode]} · ${DOCTOR.name}`}</small>
+        <small>{appt.status === 'cancelled' ? 'Запись отменена или перенесена' : `${MODE_LABEL[appt.mode]} · ${doctorById(appt.doctorId).name}`}</small>
       </span>
     </span>
   )
@@ -42,7 +45,7 @@ function ThreadView({ thread, onBack }: { thread: Thread; onBack: () => void }) 
   const { typing } = useLive()
   const [text, setText] = useState('')
   const scroller = useRef<HTMLDivElement>(null)
-  const next = thread.doctor ? nextAppointment(appts) : null
+  const next = thread.doctor ? nextAppointment(appts.filter((a) => `t-${a.doctorId}` === thread.id)) : null
   const last = thread.msgs[thread.msgs.length - 1]
   const isTyping = typing === thread.id
 
@@ -87,6 +90,12 @@ function ThreadView({ thread, onBack }: { thread: Thread; onBack: () => void }) 
 
       <div className="mg-scroll" ref={scroller}>
         <ul className="mg-msgs">
+          {thread.msgs.length === 0 && (
+            <li className="mg-fresh">
+              <b>Начните диалог</b>
+              <span>Опишите, что беспокоит, или приложите показатели. Врач ответит в течение дня.</span>
+            </li>
+          )}
           {thread.msgs.map((msg) => (
             <Bubble key={msg.id} msg={msg} appts={appts} />
           ))}
@@ -102,7 +111,7 @@ function ThreadView({ thread, onBack }: { thread: Thread; onBack: () => void }) 
         </ul>
       </div>
 
-      {thread.doctor && last?.from === 'them' && !isTyping && (
+      {thread.doctor && (last?.from === 'them' || !last) && !isTyping && (
         <div className="mg-quick" role="group" aria-label="Быстрые ответы">
           {QUICK.map((q) => (
             <button key={q} type="button" onClick={() => submit(q)}>
@@ -138,7 +147,10 @@ export function Messages({ threadId, go, onTab }: { threadId: string | null; go:
       <main className={open ? 'screen msgs has-thread' : 'screen msgs'}>
         <div className="mg-wrap">
           <aside className="mg-list" aria-label="Диалоги">
-            <h1>Сообщения</h1>
+            <div className="mg-title">
+              <h1>Сообщения</h1>
+              <TopActions go={go} />
+            </div>
             <ul>
               {sorted.map((thread) => {
                 const last = thread.msgs[thread.msgs.length - 1]

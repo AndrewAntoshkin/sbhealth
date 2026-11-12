@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { ArrowRight, CalendarCheck, CaretRight, Stethoscope, TestTube } from '@phosphor-icons/react'
+import { ArrowRight, CalendarCheck, CaretLeft, CaretRight, Stethoscope, TestTube } from '@phosphor-icons/react'
 import { IndexSheet } from '../IndexSheet'
 import { MESH_COLOR, levelOf, systemById, type SystemId } from '../data/systems'
 import { metricIcon } from '../metricIcons'
 import { AVATAR, INDEX, TONE } from '../shared'
-import { DOCTOR, MODE_LABEL, nextAppointment, resetDemo, setPref, usePrefs, useCore, type Prefs } from '../store'
+import { doctorById, threadOf } from '../data/doctors'
+import { MODE_LABEL, nextAppointment, resetDemo, setPref, usePrefs, useCore, type Prefs } from '../store'
 import { fmtDay, fmtTime, inDays } from '../time'
 import { Dock, type DockTab } from './Dock'
 
@@ -57,6 +58,9 @@ export function Profile({ go, onAtlas, onTab }: { go: (to: string) => void; onAt
     <>
       <main className="screen profile">
         <div className="pf-wrap">
+          <button type="button" className="back pf-back" aria-label="Назад" onClick={() => go('#/home')}>
+            <CaretLeft size={20} weight="bold" aria-hidden="true" />
+          </button>
           <header className="pf-id">
             <img className="pf-ava" src={AVATAR} alt="Алексей Морозов" width="320" height="320" decoding="async" fetchPriority="high" draggable={false} />
             <div>
@@ -146,11 +150,11 @@ export function Profile({ go, onAtlas, onTab }: { go: (to: string) => void; onAt
               <ul className="pf-list">
                 {next ? (
                   <li>
-                    <button type="button" className="pf-row is-next" onClick={() => go(`#/messages/${DOCTOR.id}`)}>
+                    <button type="button" className="pf-row is-next" onClick={() => go(`#/messages/${threadOf(next.doctorId)}`)}>
                       <span className="pf-ico"><CalendarCheck size={22} weight="fill" aria-hidden="true" /></span>
                       <span className="pf-copy">
-                        <b>Приём терапевта · {inDays(next.start)}</b>
-                        <small>{DOCTOR.name} · {MODE_LABEL[next.mode].toLowerCase()}</small>
+                        <b>{doctorById(next.doctorId).role} · {inDays(next.start)}</b>
+                        <small>{doctorById(next.doctorId).name} · {MODE_LABEL[next.mode].toLowerCase()}</small>
                       </span>
                       <span className="pf-val">{fmtDay(next.start).split(', ')[1]}<small>{fmtTime(next.start)}</small></span>
                     </button>
@@ -210,7 +214,7 @@ export function Profile({ go, onAtlas, onTab }: { go: (to: string) => void; onAt
       </main>
 
       <div inert={indexOpen || undefined}>
-        <Dock active="profile" onGo={(tab) => onTab(tab)} />
+        <Dock active={null} onGo={(tab) => onTab(tab)} />
       </div>
 
       {indexOpen && (

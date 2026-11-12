@@ -1,9 +1,11 @@
 import { useCallback, useRef, useState } from 'react'
-import { ArrowRight, ArrowUpRight, BellSimple, CalendarCheck, ChatCircleText, Info, VideoCamera, Buildings } from '@phosphor-icons/react'
+import { ArrowRight, ArrowUpRight, BookOpenText, CalendarCheck, ChatCircleText, Info, VideoCamera, Buildings } from '@phosphor-icons/react'
 import { Booking } from '../Booking'
 import { IndexSheet } from '../IndexSheet'
-import { Notifications } from '../Notifications'
-import { DOCTOR, DURATION, MODE_LABEL, nextAppointment, unreadNotifs, useCore, type Appointment } from '../store'
+import { ARTICLES } from '../data/articles'
+import { doctorById, doctorFor, roleTo, threadOf } from '../data/doctors'
+import { TopActions } from '../TopActions'
+import { DURATION, MODE_LABEL, nextAppointment, useCore, type Appointment } from '../store'
 import { cap, fmtDay, fmtDayLong, fmtTime, inDays } from '../time'
 import { MESH_COLOR, RISK_SOFT, levelOf, systemById, type SystemId } from '../data/systems'
 import { Fine, INDEX, ORDER, ORGAN_TITLE, RiskTag, TONE, thumb } from '../shared'
@@ -35,14 +37,12 @@ function today() {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
-export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; go: (to: string) => void; open?: 'index' | 'notifications' }) {
+export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; go: (to: string) => void; open?: 'index' }) {
   const [indexOpen, setIndexOpen] = useState(open === 'index')
-  const [notifOpen, setNotifOpen] = useState(open === 'notifications')
   const [booking, setBooking] = useState<{ systemId: SystemId; replace?: Appointment } | null>(null)
   const core = useCore()
   const appt = nextAppointment(core.appts)
-  const unread = unreadNotifs(core)
-  const overlay = indexOpen || notifOpen || booking !== null
+  const overlay = indexOpen || booking !== null
 
   const opener = useRef<HTMLElement | null>(null)
 
@@ -66,7 +66,7 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
   const onTab = (tab: DockTab) => {
     if (tab === 'atlas') onAtlas()
     if (tab === 'messages') go('#/messages')
-    if (tab === 'profile') go('#/profile')
+    if (tab === 'doctors') go('#/doctors')
   }
 
   const top = ATTENTION[0]
@@ -82,19 +82,7 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
               <p>{today()}</p>
               <h1>{greeting()}</h1>
             </div>
-            <button
-              className="hm-bell"
-              type="button"
-              aria-label={unread ? `Уведомления, новых: ${unread}` : 'Уведомления'}
-              aria-haspopup="dialog"
-              onClick={(event) => {
-                opener.current = event.currentTarget
-                setNotifOpen(true)
-              }}
-            >
-              <BellSimple size={24} weight="duotone" aria-hidden="true" />
-              {unread > 0 && <em aria-hidden="true">{unread}</em>}
-            </button>
+            <TopActions go={go} />
           </header>
 
           <section className="hm-hero" aria-label="Индекс здоровья">
@@ -135,14 +123,14 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
                 <span>{fmtTime(appt.start)}</span>
               </p>
               <p className="nx-line">
-                {cap(fmtDayLong(appt.start).split(',')[0])} · {DOCTOR.name}, терапевт
+                {cap(fmtDayLong(appt.start).split(',')[0])} · {doctorById(appt.doctorId).name}, {doctorById(appt.doctorId).role.toLowerCase()}
               </p>
               <p className="nx-meta">
                 {appt.mode === 'video' ? <VideoCamera size={16} weight="duotone" aria-hidden="true" /> : <Buildings size={16} weight="duotone" aria-hidden="true" />}
                 {MODE_LABEL[appt.mode]}, {DURATION[appt.mode]} мин · тема «{ORGAN_TITLE[appt.systemId]}»
               </p>
               <div className="nx-actions">
-                <button type="button" className="nx-btn is-dark" onClick={() => go(`#/messages/${DOCTOR.id}`)}>
+                <button type="button" className="nx-btn is-dark" onClick={() => go(`#/messages/${threadOf(appt.doctorId)}`)}>
                   <ChatCircleText size={18} weight="fill" aria-hidden="true" />
                   Написать врачу
                 </button>
@@ -155,7 +143,7 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
             <section className="hm-next" aria-labelledby="hm-next" style={{ ['--soft' as string]: RISK_SOFT[topLevel], ['--c' as string]: MESH_COLOR[topLevel] }}>
               <img className="nx-thumb" src={thumb(top.id)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false} />
               <p className="hm-kicker" id="hm-next">Следующий шаг</p>
-              <h2 className="nx-title">Запишитесь к терапевту</h2>
+              <h2 className="nx-title">Запишитесь к {roleTo(doctorFor(top.id))}</h2>
               <p className="nx-text">Самая заметная зона в атласе — «{ORGAN_TITLE[top.id]}». Приём займёт 30 минут, время выберете сами.</p>
               <div className="nx-actions">
                 <button type="button" className="nx-btn is-dark" onClick={() => setBooking({ systemId: top.id })}>
@@ -200,6 +188,30 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
                 )
               })}
             </div>
+          </section>
+
+          <section className="hm-sec hm-learn" aria-labelledby="hm-learn">
+            <div className="hm-head">
+              <h2 id="hm-learn">Полезное</h2>
+              <button type="button" className="hm-link" onClick={() => go('#/learn')}>
+                Все статьи
+              </button>
+            </div>
+            <ul className="ln-rail">
+              {ARTICLES.map((a) => {
+                const sys = a.systemId ? systemById(a.systemId) : null
+                const lv = sys ? levelOf(sys.risk) : null
+                return (
+                  <li key={a.id}>
+                    <button type="button" className="ln-card" style={lv ? { ['--soft' as string]: RISK_SOFT[lv] } : undefined} onClick={() => go(`#/learn/${a.id}`)}>
+                      {sys ? <img src={thumb(sys.id)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false} /> : <span className="ln-mark" aria-hidden="true"><BookOpenText size={30} weight="duotone" /></span>}
+                      <small>{a.kicker} · {a.minutes} мин</small>
+                      <b>{a.title}</b>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
           </section>
 
           <section className="hm-sec hm-read" aria-labelledby="hm-read">
@@ -266,27 +278,15 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
         />
       )}
 
-      {notifOpen && (
-        <Notifications
-          onClose={() => {
-            setNotifOpen(false)
-            clearOpen()
-          }}
-          onGo={(to) => {
-            setNotifOpen(false)
-            go(to)
-          }}
-        />
-      )}
-
       {booking && (
         <Booking
           systemId={booking.systemId}
+          doctorId={booking.replace?.doctorId ?? doctorFor(booking.systemId).id}
           replace={booking.replace}
           onClose={() => setBooking(null)}
-          onChat={() => {
+          onChat={(to) => {
             setBooking(null)
-            go(`#/messages/${DOCTOR.id}`)
+            go(to)
           }}
         />
       )}

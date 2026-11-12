@@ -1,3 +1,4 @@
+import { doctorPhoto } from './data/doctors'
 import { MESH_COLOR, RISK_INK, RISK_LABEL, RISK_SOFT, healthIndex, indexTone, systemsByRisk, type RiskLevel, type SystemId } from './data/systems'
 
 export const ORGAN_TITLE: Record<SystemId, string> = {
@@ -161,3 +162,8 @@ export function ScoreChip({
   )
 }
 
+
+/** Круглое фото врача. */
+export function DoctorAva({ id, size = 48, className = '' }: { id: string; size?: number; className?: string }) {
+  return <img className={`ava ${className}`.trim()} src={doctorPhoto(id)} width={size} height={size} alt="" decoding="async" draggable={false} style={{ width: size, height: size }} />
+}

@@ -1,5 +1,6 @@
 import { useSyncExternalStore } from 'react'
 import { SYSTEMS, healthIndex, systemById, type SystemId } from './data/systems'
+import { doctorById, doctorPhoto, roleTo, threadOf } from './data/doctors'
 import { ORGAN_TITLE } from './shared'
 import { fmtDm, fmtTime, fmtWhen } from './time'
 
@@ -7,6 +8,7 @@ export type Mode = 'video' | 'clinic'
 
 export interface Appointment {
   id: string
+  doctorId: string
   systemId: SystemId
   start: number
   mode: Mode
@@ -40,6 +42,8 @@ export interface Thread {
   role: string
   initials: string
   doctor?: boolean
+  /** путь к фото врача */
+  avatar?: string
   unread: number
   msgs: Msg[]
 }
@@ -50,14 +54,13 @@ interface Core {
   threads: Thread[]
 }
 
-export const DOCTOR = { id: 't-doc', name: 'Анна Соколова', role: 'Терапевт', initials: 'АС' }
 export const TEAM = { id: 't-team', name: 'Команда Атласа', role: 'Поддержка', initials: 'А' }
 
 export const DURATION: Record<Mode, number> = { video: 30, clinic: 40 }
 export const MODE_LABEL: Record<Mode, string> = { video: 'Видео', clinic: 'В клинике' }
 export const CLINIC = 'Клиника «Атлас», Тверская, 12'
 
-const KEY = 'atlas-demo-v1'
+const KEY = 'atlas-demo-v2'
 const uid = () => Math.random().toString(36).slice(2, 9)
 
 function seed(): Core {
@@ -199,46 +202,50 @@ function pushMessage(state: Core, threadId: string, msg: Omit<Msg, 'id' | 'at'>,
   }
 }
 
-function ensureDoctor(state: Core): Core {
-  if (state.threads.some((t) => t.id === DOCTOR.id)) return state
-  return { ...state, threads: [{ ...DOCTOR, doctor: true, unread: 0, msgs: [] }, ...state.threads] }
+function ensureDoctor(state: Core, doctorId: string): Core {
+  const id = threadOf(doctorId)
+  if (state.threads.some((t) => t.id === id)) return state
+  const d = doctorById(doctorId)
+  return { ...state, threads: [{ id, name: d.name, role: d.role, initials: d.initials, doctor: true, avatar: doctorPhoto(d.id), unread: 0, msgs: [] }, ...state.threads] }
 }
 
-export function book(input: { systemId: SystemId; start: number; mode: Mode; share: boolean; replaceId?: string }): Appointment {
-  const appt: Appointment = { id: uid(), systemId: input.systemId, start: input.start, mode: input.mode, share: input.share, status: 'booked' }
+export function book(input: { systemId: SystemId; doctorId: string; start: number; mode: Mode; share: boolean; replaceId?: string }): Appointment {
+  const appt: Appointment = { id: uid(), doctorId: input.doctorId, systemId: input.systemId, start: input.start, mode: input.mode, share: input.share, status: 'booked' }
   const moved = Boolean(input.replaceId)
   const organ = ORGAN_TITLE[input.systemId]
   let next: Core = {
     ...core,
     appts: [appt, ...core.appts.map((a) => (a.id === input.replaceId ? { ...a, status: 'cancelled' as const } : a))],
   }
-  next = ensureDoctor(next)
+  const doctor = doctorById(input.doctorId)
+  const thread = threadOf(doctor.id)
+  next = ensureDoctor(next, doctor.id)
   next = pushNotif(next, {
     kind: 'booking',
     title: moved ? 'Запись перенесена' : 'Запись подтверждена',
-    text: `${fmtWhen(appt.start)} · ${DOCTOR.name}, ${input.mode === 'video' ? 'видео' : 'в клинике'}`,
-    to: `#/messages/${DOCTOR.id}`,
+    text: `${fmtWhen(appt.start)} · ${doctor.name}, ${input.mode === 'video' ? 'видео' : 'в клинике'}`,
+    to: `#/messages/${thread}`,
   })
   const hello = moved
-    ? `Перенесла приём на ${fmtDm(appt.start)}, ${fmtTime(appt.start)}.`
-    : `Здравствуйте! Записала вас на ${fmtDm(appt.start)} в ${fmtTime(appt.start)}. Тема — «${organ}».`
-  next = pushMessage(next, DOCTOR.id, { from: 'them', text: hello, appt: appt.id }, true)
+    ? `Приём перенесён на ${fmtDm(appt.start)}, ${fmtTime(appt.start)}.`
+    : `Здравствуйте! Вы записаны на ${fmtDm(appt.start)} в ${fmtTime(appt.start)}. Тема — «${organ}».`
+  next = pushMessage(next, thread, { from: 'them', text: hello, appt: appt.id }, true)
   next = pushMessage(
     next,
-    DOCTOR.id,
+    thread,
     {
       from: 'them',
       text: input.share
-        ? `Данные по системе «${systemById(input.systemId).name}» из атласа получила, посмотрю до встречи. Если что-то изменится, напишите сюда.`
-        : 'Если захотите, пришлите показатели сюда — посмотрю до встречи.',
+        ? `Данные по системе «${systemById(input.systemId).name}» из атласа вижу, посмотрю до встречи. Если что-то изменится, напишите сюда.`
+        : 'Если захотите, пришлите показатели сюда: посмотрю до встречи.',
     },
     true,
   )
   set(next)
   toast({
-    title: moved ? 'Запись перенесена' : 'Вы записаны к терапевту',
-    text: `${fmtWhen(appt.start)} · ${DOCTOR.name}`,
-    to: `#/messages/${DOCTOR.id}`,
+    title: moved ? 'Запись перенесена' : `Вы записаны к ${roleTo(doctor)}`,
+    text: `${fmtWhen(appt.start)} · ${doctor.name}`,
+    to: `#/messages/${thread}`,
   })
   return appt
 }
@@ -280,7 +287,7 @@ function reply(text: string, appt: Appointment | null): string {
     return appt ? 'Паспорт, полис и последние анализы. Если сдаёте кровь — лучше натощак. Остальное обсудим на приёме.' : 'Для первого приёма достаточно паспорта и полиса. Остальное обсудим вместе.'
   if (/спасибо|благодар/.test(t)) return 'Пожалуйста! До встречи.'
   if (/привет|здравств/.test(t)) return 'Здравствуйте! Чем могу помочь?'
-  return 'Спасибо, поняла. Посмотрю и отвечу в течение рабочего дня.'
+  return 'Спасибо, принято. Посмотрю и отвечу в течение рабочего дня.'
 }
 
 export function sendMessage(threadId: string, text: string) {
@@ -359,4 +366,10 @@ export function resetDemo() {
   }
   prefListeners.forEach((fn) => fn())
   setLive({ toasts: [], typing: null })
+}
+
+/** Диалог с врачом создаётся по требованию: можно написать до записи. */
+export function ensureThread(doctorId: string) {
+  const next = ensureDoctor(core, doctorId)
+  if (next !== core) set(next)
 }
