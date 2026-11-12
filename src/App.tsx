@@ -71,7 +71,7 @@ export function App() {
   }
 
   let screen
-  if (route.name === 'start') screen = <Start onStart={() => go('#/home')} />
+  if (route.name === 'start') screen = <Start onStart={() => go('#/atlas')} />
   else if (route.name === 'home') screen = <Home key={route.open ?? 'home'} open={route.open} go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} />
   else if (route.name === 'profile') screen = <Profile go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} onTab={onTab} />
   else if (route.name === 'doctors') screen = route.id ? <DoctorProfile key={route.id} id={route.id} go={go} onAtlas={(id) => go(`#/atlas/${id}`)} /> : <Doctors go={go} onTab={onTab} />

@@ -20,7 +20,7 @@ export function Learn({ id, go, onTab, onAtlas }: { id: string | null; go: (to: 
     <>
       <main className="screen learn">
         <div className="ln-wrap">
-          <button type="button" className="back ln-back" aria-label={article ? 'К статьям' : 'На главную'} onClick={() => go(article ? '#/learn' : '#/home')}>
+          <button type="button" className="back ln-back" aria-label={article ? 'К статьям' : 'К сводке'} onClick={() => go(article ? '#/learn' : '#/home')}>
             <CaretLeft size={20} weight="bold" aria-hidden="true" />
           </button>
 

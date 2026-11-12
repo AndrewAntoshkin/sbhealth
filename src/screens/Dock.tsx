@@ -1,11 +1,11 @@
-import { ChatCircleText, House, PersonSimple, Stethoscope } from '@phosphor-icons/react'
+import { ChatCircleText, PersonSimple, SquaresFour, Stethoscope } from '@phosphor-icons/react'
 import { unreadMessages, useCore } from '../store'
 
 export type DockTab = 'home' | 'atlas' | 'doctors' | 'messages'
 
-const ITEMS: { id: DockTab; label: string; icon: typeof House }[] = [
-  { id: 'home', label: 'Главная', icon: House },
+const ITEMS: { id: DockTab; label: string; icon: typeof SquaresFour }[] = [
   { id: 'atlas', label: 'Атлас', icon: PersonSimple },
+  { id: 'home', label: 'Сводка', icon: SquaresFour },
   { id: 'doctors', label: 'Врачи', icon: Stethoscope },
   { id: 'messages', label: 'Сообщения', icon: ChatCircleText },
 ]
