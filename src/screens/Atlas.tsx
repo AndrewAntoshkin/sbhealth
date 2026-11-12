@@ -11,6 +11,7 @@ import {
 } from 'react'
 import { ArrowCounterClockwise, ArrowRight, CalendarCheck, CaretLeft } from '@phosphor-icons/react'
 import { Booking } from '../Booking'
+import { TopActions } from '../TopActions'
 import { Dock, type DockTab } from './Dock'
 import { doctorById, doctorFor, roleTo } from '../data/doctors'
 import { MODE_LABEL, cancelAppointment, useCore, type Appointment } from '../store'
@@ -103,12 +104,15 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
           <h1>Атлас тела</h1>
           <p className="kicker">13 систем</p>
         </div>
-        <ScoreChip value={INDEX} tone={TONE} buttonRef={chipRef} onOpen={() => go('#/index')} />
+        <TopActions go={go} />
       </header>
 
       <div className="workspace">
         <div className="stage" onPointerDownCapture={() => setHint(false)}>
           {/* готовый кадр тела: виден сразу, пока качается и собирается настоящая модель */}
+          <div className="stage-chip">
+            <ScoreChip value={INDEX} tone={TONE} buttonRef={chipRef} onOpen={() => go('#/index')} />
+          </div>
           <img className="poster" data-ready={modelReady || undefined} src={POSTER} alt="" aria-hidden="true" fetchPriority="high" decoding="async" />
           <Suspense fallback={<div className="loader" role="status"><div className="loader-orbit" /><p>Собираем тело</p></div>}>
             <BodyCanvas

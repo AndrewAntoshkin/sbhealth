@@ -14,8 +14,8 @@ export function IndexPage({ onBack, onTab, onAtlas }: { onBack: () => void; onTa
               <CaretLeft size={20} weight="bold" aria-hidden="true" />
             </button>
             <div>
-              <p>Как это считается</p>
               <h1>Индекс здоровья</h1>
+              <p>Как это считается</p>
             </div>
           </header>
           <IndexContent onSelect={onAtlas} />

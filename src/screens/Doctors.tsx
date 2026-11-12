@@ -82,7 +82,7 @@ export function Doctors({ go, onTab }: { go: (to: string) => void; onTab: (tab: 
           <header className="tab-head">
             <div>
               <h1>Врачи</h1>
-              <p>Запись за минуту, вопросы можно задать в чате</p>
+              <p>Запись за минуту и чат с врачом</p>
             </div>
             <TopActions go={go} />
           </header>

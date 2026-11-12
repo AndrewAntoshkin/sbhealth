@@ -56,10 +56,10 @@ export function Home({ onAtlas, go }: { onAtlas: (id?: SystemId) => void; go: (t
     <>
       <main className="screen home" inert={overlay || undefined}>
         <div className="hm-wrap">
-          <header className="hm-top">
+          <header className="hm-top tab-head">
             <div>
-              <p>{today()}</p>
               <h1>{greeting()}</h1>
+              <p>{today()}</p>
             </div>
             <TopActions go={go} />
           </header>
