@@ -1,0 +1,19 @@
+3D anatomy in this demo is a simplified derivative of the Human Reference Atlas
+united male reference organ set, version 1.10.
+
+Source: HuBMAP / Human Reference Atlas, 3D Reference Object Library
+https://humanatlas.io/3d-reference-library
+DOI: https://doi.org/10.48539/hbm833.wzwn.425
+
+The reference was built from Visible Human Male data (U.S. National Library of
+Medicine; Spitzer et al. 1996; Ackerman 1998) and includes Allen brain
+structures and other contributed organ sets distributed with the HRA release.
+
+License: Creative Commons Attribution 4.0 International (CC BY 4.0)
+https://creativecommons.org/licenses/by/4.0/
+
+The mesh was decimated for a phone-sized real-time view. It is an anatomical
+reference, not a patient scan and not a diagnosis.
+
+Changes: meshes were grouped into 13 body systems, tiny structures that do not
+read on a phone were omitted, and geometry was simplified and quantized.

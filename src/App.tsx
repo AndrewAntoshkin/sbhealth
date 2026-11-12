@@ -1,0 +1,301 @@
+import { useEffect, useState } from 'react'
+import { BodyCanvas } from './scene/BodyCanvas'
+import {
+  MESH_COLOR,
+  RISK_INK,
+  RISK_LABEL,
+  RISK_SOFT,
+  healthIndex,
+  indexTone,
+  levelOf,
+  systemById,
+  systemsByRisk,
+  type RiskLevel,
+  type SystemId,
+} from './data/systems'
+
+const ORDER = systemsByRisk()
+const INDEX = healthIndex()
+const TONE = indexTone(INDEX)
+const LEVELS: RiskLevel[] = ['low', 'watch', 'elevated', 'high']
+
+export function App() {
+  const [selected, setSelected] = useState<SystemId | null>(null)
+  const [open, setOpen] = useState(false)
+  const [asked, setAsked] = useState(false)
+  const [resetSignal, setResetSignal] = useState(0)
+  const wide = useWide()
+  const system = selected ? systemById(selected) : null
+  const level = system ? levelOf(system.risk) : null
+  const expanded = wide || open
+
+  useEffect(() => {
+    setAsked(false)
+    if (selected) setOpen(true)
+    if (!selected) return
+    const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    document.getElementById(`chip-${selected}`)?.scrollIntoView({
+      inline: 'center',
+      block: 'nearest',
+      behavior: reduce ? 'auto' : 'smooth',
+    })
+  }, [selected])
+
+  useEffect(() => {
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSelected(null)
+        return
+      }
+      if (event.key !== 'ArrowRight' && event.key !== 'ArrowLeft') return
+      const index = selected ? ORDER.findIndex((item) => item.id === selected) : -1
+      const step = event.key === 'ArrowRight' ? 1 : -1
+      const next = ORDER[(index + step + ORDER.length) % ORDER.length]
+      setSelected(next.id)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [selected])
+
+  const top = ORDER.slice(0, 3).map((item) => item.name.toLowerCase())
+
+  return (
+    <div className="app">
+      <header className="top">
+        <div className="brand">
+          <Mark />
+          <div>
+            <p className="kicker">Демо · не диагноз</p>
+            <h1>Системы организма</h1>
+            <p className="tone">{TONE}</p>
+          </div>
+        </div>
+        <ScoreRing value={INDEX} />
+      </header>
+
+      <div className="workspace">
+        <div className="stage">
+          <BodyCanvas
+            selected={selected}
+            resetSignal={resetSignal}
+            onSelect={(id) => {
+              setSelected(id)
+              if (id) setOpen(true)
+            }}
+          />
+          <button
+            className="reset"
+            type="button"
+            aria-label="Вернуть общий ракурс"
+            onClick={() => {
+              setSelected(null)
+              setResetSignal((value) => value + 1)
+            }}
+          >
+            <ResetIcon />
+          </button>
+        </div>
+
+        <section className={expanded ? 'panel is-open' : 'panel'} aria-label="Системы и риск">
+          <button
+            className="handle"
+            type="button"
+            aria-expanded={expanded}
+            aria-label={expanded ? 'Свернуть подробности' : 'Показать подробности'}
+            onClick={() => setOpen((value) => !value)}
+          >
+            <i />
+          </button>
+
+          <div className="legend" aria-hidden="true">
+            {LEVELS.map((item) => (
+              <span key={item}>
+                <i style={{ background: MESH_COLOR[item] }} />
+                {RISK_LABEL[item]}
+              </span>
+            ))}
+          </div>
+
+          <div className="rail" role="group" aria-label="Системы">
+            {ORDER.map((item) => {
+              const itemLevel = levelOf(item.risk)
+              const on = item.id === selected
+              return (
+                <button
+                  key={item.id}
+                  id={`chip-${item.id}`}
+                  type="button"
+                  className={on ? 'chip is-on' : 'chip'}
+                  aria-pressed={on}
+                  style={{ ['--chip-color' as string]: MESH_COLOR[itemLevel] }}
+                  onClick={() => setSelected(on ? null : item.id)}
+                >
+                  <i style={{ background: MESH_COLOR[itemLevel] }} />
+                  {item.short}
+                </button>
+              )
+            })}
+          </div>
+
+          <div className="scroll">
+            {system && level ? (
+              <>
+                <p className="eyebrow">Система</p>
+                <h2>{system.name}</h2>
+                <p className="covers">На модели: {system.covers}</p>
+                <div className="row">
+                  <span className="pill" style={{ background: RISK_SOFT[level], color: RISK_INK[level] }}>
+                    {RISK_LABEL[level]} риск
+                  </span>
+                  <span className="score-num" style={{ color: RISK_INK[level] }}>
+                    {system.risk}
+                  </span>
+                </div>
+                <div
+                  className="meter"
+                  role="meter"
+                  aria-valuenow={system.risk}
+                  aria-valuemin={0}
+                  aria-valuemax={100}
+                  aria-label="Уровень риска"
+                >
+                  <span style={{ width: `${system.risk}%`, background: MESH_COLOR[level] }} />
+                </div>
+                <p className="lead">{system.summary}</p>
+                {expanded && (
+                  <>
+                    <p className="meaning">{system.meaning}</p>
+                    <p className="section-label">Показатели · демо</p>
+                    {system.metrics.map((metric) => (
+                      <div className="metric" key={metric.label}>
+                        <span>{metric.label}</span>
+                        <b>{metric.value}</b>
+                        <small>{metric.hint}</small>
+                      </div>
+                    ))}
+                    <p className="section-label">Что с этим делать</p>
+                    <div className="advice">{system.advice}</div>
+                    {asked ? (
+                      <div className="advice">
+                        Это демо: запись не создаётся. В продукте здесь открылась бы консультация терапевта.
+                        <div>
+                          <button className="text-btn" type="button" onClick={() => setAsked(false)}>
+                            Понятно
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <button className="primary" type="button" onClick={() => setAsked(true)}>
+                        Обсудить с терапевтом
+                      </button>
+                    )}
+                    <button className="text-btn" type="button" onClick={() => setSelected(null)}>
+                      Все системы
+                    </button>
+                  </>
+                )}
+              </>
+            ) : (
+              <>
+                <p className="eyebrow">13 систем</p>
+                <h2>Цвет — это риск</h2>
+                <p className="lead">
+                  Выше остальных сейчас {top[0]}, {top[1]} и {top[2]}. Нажмите на орган или на чип.
+                </p>
+                <ul className="overview-list">
+                  {ORDER.map((item) => {
+                    const itemLevel = levelOf(item.risk)
+                    return (
+                      <li key={item.id}>
+                        <button type="button" onClick={() => setSelected(item.id)}>
+                          <i className="legend-dot" style={{ background: MESH_COLOR[itemLevel] }} />
+                          <span>
+                            <span className="name">{item.name}</span>
+                            <span className="sub">{item.covers}</span>
+                          </span>
+                          <span className="risk-word" style={{ color: RISK_INK[itemLevel] }}>
+                            {RISK_LABEL[itemLevel]} · {item.risk}
+                          </span>
+                        </button>
+                      </li>
+                    )
+                  })}
+                </ul>
+              </>
+            )}
+            <p className="fine">
+              Демо-данные для интерфейса, не медицинское заключение. Модель: Human Reference Atlas, мужской
+              референс v1.10,{' '}
+              <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
+                CC BY 4.0
+              </a>
+              . Упрощена для телефона.{' '}
+              <a href="https://humanatlas.io/3d-reference-library" target="_blank" rel="noreferrer">
+                Источник
+              </a>
+              .
+            </p>
+          </div>
+        </section>
+      </div>
+    </div>
+  )
+}
+
+function ScoreRing({ value }: { value: number }) {
+  const tone = value >= 75 ? MESH_COLOR.low : value >= 55 ? MESH_COLOR.watch : MESH_COLOR.high
+  const radius = 22
+  const circumference = 2 * Math.PI * radius
+  const dash = circumference * (value / 100)
+  return (
+    <div className="score" role="img" aria-label={`Индекс здоровья ${value} из 100. Выше — спокойнее.`}>
+      <svg viewBox="0 0 56 56">
+        <circle cx="28" cy="28" r={radius} fill="none" stroke="#E6EDF1" strokeWidth="4.5" />
+        <circle
+          cx="28"
+          cy="28"
+          r={radius}
+          fill="none"
+          stroke={tone}
+          strokeWidth="4.5"
+          strokeLinecap="round"
+          strokeDasharray={`${dash} ${circumference}`}
+          transform="rotate(-90 28 28)"
+        />
+      </svg>
+      <strong>{value}</strong>
+    </div>
+  )
+}
+
+function Mark() {
+  return (
+    <svg className="mark" viewBox="0 0 40 40" aria-hidden="true">
+      <rect width="40" height="40" rx="12" fill="#21A038" />
+      <circle cx="20" cy="12" r="3.4" fill="#fff" />
+      <path fill="#fff" d="M14.2 18.4c.2-2 2-3.2 5.8-3.2s5.6 1.2 5.8 3.2V28c0 1.7-1.2 2.8-3 2.8h-5.6c-1.8 0-3-1.1-3-2.8V18.4z" />
+      <circle cx="23.6" cy="21.6" r="1.7" fill="#FF0D65" />
+    </svg>
+  )
+}
+
+function ResetIcon() {
+  return (
+    <svg width="20" height="20" viewBox="0 0 20 20" fill="none" aria-hidden="true">
+      <path d="M16 10a6 6 0 1 1-1.6-4.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+      <path d="M16 3.5V7h-3.5" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+}
+
+function useWide() {
+  const query = '(min-width: 960px)'
+  const [wide, setWide] = useState(() => window.matchMedia(query).matches)
+  useEffect(() => {
+    const media = window.matchMedia(query)
+    const onChange = () => setWide(media.matches)
+    media.addEventListener('change', onChange)
+    return () => media.removeEventListener('change', onChange)
+  }, [])
+  return wide
+}
