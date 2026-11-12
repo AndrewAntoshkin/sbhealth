@@ -4,7 +4,7 @@ import { MESH_COLOR, RISK_INK, RISK_SOFT, levelOf, systemById, type SystemId } f
 import { Overlay } from './Overlay'
 import { metricIcon } from './metricIcons'
 import { ORGAN_TITLE, RiskTag, thumb } from './shared'
-import { CLINIC, DOCTOR, DURATION, MODE_LABEL, book, type Appointment, type Mode } from './store'
+import { CLINIC, DOCTOR, DURATION, MODE_LABEL, book, getPrefs, type Appointment, type Mode } from './store'
 import { cap, fmtDay, fmtDayLong, fmtTime, inDays } from './time'
 
 const TIMES = ['09:00', '09:30', '10:00', '10:30', '11:00', '11:30', '12:00', '12:30', '14:00', '14:30', '15:00', '15:30', '17:00', '17:30', '18:00', '18:30']
@@ -99,7 +99,7 @@ export function Booking({
   })
   const [time, setTime] = useState<string | null>(null)
   const [mode, setMode] = useState<Mode>(replace?.mode ?? 'video')
-  const [share, setShare] = useState(replace?.share ?? true)
+  const [share, setShare] = useState(replace?.share ?? getPrefs().share)
   const [step, setStep] = useState<Step>('pick')
   const [pending, setPending] = useState(false)
   const [done, setDone] = useState<Appointment | null>(null)

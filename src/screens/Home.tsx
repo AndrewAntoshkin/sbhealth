@@ -63,10 +63,10 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
-  const onTab = (tab: DockTab, el: HTMLElement) => {
+  const onTab = (tab: DockTab) => {
     if (tab === 'atlas') onAtlas()
     if (tab === 'messages') go('#/messages')
-    if (tab === 'index') openIndex(el)
+    if (tab === 'profile') go('#/profile')
   }
 
   const top = ATTENTION[0]

@@ -3,6 +3,7 @@ import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
 import { SYSTEMS, type SystemId } from './data/systems'
 import { Home } from './screens/Home'
 import { Messages } from './screens/Messages'
+import { Profile } from './screens/Profile'
 import type { DockTab } from './screens/Dock'
 import { Toaster } from './Toaster'
 import { Start } from './screens/Start'
@@ -11,11 +12,12 @@ import { Start } from './screens/Start'
 const loadAtlas = () => import('./screens/Atlas')
 const Atlas = lazy(() => loadAtlas().then((m) => ({ default: m.Atlas })))
 
-type Route = { name: 'start' } | { name: 'home'; open?: 'index' | 'notifications' } | { name: 'messages'; id: string | null } | { name: 'atlas'; id: SystemId | null }
+type Route = { name: 'start' } | { name: 'home'; open?: 'index' | 'notifications' } | { name: 'messages'; id: string | null } | { name: 'profile' } | { name: 'atlas'; id: SystemId | null }
 
 function parse(hash: string): Route {
   const [, name, id] = hash.replace(/^#/, '').split('/')
   if (name === 'home') return { name: 'home', open: id === 'index' || id === 'notifications' ? id : undefined }
+  if (name === 'profile') return { name: 'profile' }
   if (name === 'messages') return { name: 'messages', id: id || null }
   if (name === 'atlas') return { name: 'atlas', id: SYSTEMS.some((item) => item.id === id) ? (id as SystemId) : null }
   return { name: 'start' }
@@ -61,12 +63,13 @@ export function App() {
     if (tab === 'home') go('#/home')
     if (tab === 'atlas') go('#/atlas')
     if (tab === 'messages') go('#/messages')
-    if (tab === 'index') go('#/home/index')
+    if (tab === 'profile') go('#/profile')
   }
 
   let screen
   if (route.name === 'start') screen = <Start onStart={() => go('#/home')} />
   else if (route.name === 'home') screen = <Home key={route.open ?? 'home'} open={route.open} go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} />
+  else if (route.name === 'profile') screen = <Profile go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} onTab={onTab} />
   else if (route.name === 'messages') screen = <Messages threadId={route.id} go={go} onTab={onTab} />
   else
     screen = (

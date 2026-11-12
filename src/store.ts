@@ -302,3 +302,61 @@ export function sendMessage(threadId: string, text: string) {
 
 /** Первая система с высоким риском — на что рекомендуем записаться. */
 export const topSystem = () => [...SYSTEMS].sort((a, b) => b.risk - a.risk)[0]
+
+/* ——— настройки профиля ——— */
+
+export interface Prefs {
+  remind: boolean
+  tips: boolean
+  share: boolean
+}
+
+const PREFS_KEY = 'atlas-prefs-v1'
+const DEFAULT_PREFS: Prefs = { remind: true, tips: true, share: true }
+
+function loadPrefs(): Prefs {
+  try {
+    const raw = localStorage.getItem(PREFS_KEY)
+    if (raw) return { ...DEFAULT_PREFS, ...(JSON.parse(raw) as Partial<Prefs>) }
+  } catch {
+    /* значения по умолчанию */
+  }
+  return DEFAULT_PREFS
+}
+
+let prefs = loadPrefs()
+const prefListeners = new Set<() => void>()
+
+export const getPrefs = () => prefs
+
+export const usePrefs = () =>
+  useSyncExternalStore(
+    (fn) => {
+      prefListeners.add(fn)
+      return () => prefListeners.delete(fn)
+    },
+    () => prefs,
+  )
+
+export function setPref<K extends keyof Prefs>(key: K, value: Prefs[K]) {
+  prefs = { ...prefs, [key]: value }
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs))
+  } catch {
+    /* хранилище недоступно */
+  }
+  prefListeners.forEach((fn) => fn())
+}
+
+/** Вернуть демо к исходному состоянию: записи, сообщения и настройки. */
+export function resetDemo() {
+  set(seed())
+  prefs = DEFAULT_PREFS
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs))
+  } catch {
+    /* хранилище недоступно */
+  }
+  prefListeners.forEach((fn) => fn())
+  setLive({ toasts: [], typing: null })
+}
