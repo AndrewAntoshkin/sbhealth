@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { ArrowRight, CalendarCheck, CaretLeft, CaretRight, Stethoscope, TestTube } from '@phosphor-icons/react'
+import { IndexSheet } from '../IndexSheet'
 import { MESH_COLOR, levelOf, systemById, type SystemId } from '../data/systems'
 import { metricIcon } from '../metricIcons'
 import { AVATAR, INDEX, TONE } from '../shared'
@@ -47,6 +48,7 @@ function IndexRing() {
 }
 
 export function Profile({ go, onAtlas, onTab }: { go: (to: string) => void; onAtlas: (id?: SystemId) => void; onTab: (tab: DockTab) => void }) {
+  const [indexOpen, setIndexOpen] = useState(false)
   const [confirmReset, setConfirmReset] = useState(false)
   const { appts } = useCore()
   const prefs = usePrefs()
@@ -71,7 +73,7 @@ export function Profile({ go, onAtlas, onTab }: { go: (to: string) => void; onAt
           </header>
 
           <div className="pf-col">
-            <button type="button" className="pf-index" onClick={() => go('#/index')}>
+            <button type="button" className="pf-index" aria-haspopup="dialog" onClick={() => setIndexOpen(true)}>
               <IndexRing />
               <span>
                 <small>Индекс здоровья</small>
@@ -210,9 +212,19 @@ export function Profile({ go, onAtlas, onTab }: { go: (to: string) => void; onAt
         </div>
       </main>
 
-      <div>
+      <div inert={indexOpen || undefined}>
         <Dock active={null} onGo={(tab) => onTab(tab)} />
       </div>
+
+      {indexOpen && (
+        <IndexSheet
+          onClose={() => setIndexOpen(false)}
+          onSelect={(id) => {
+            setIndexOpen(false)
+            onAtlas(id)
+          }}
+        />
+      )}
     </>
   )
 }

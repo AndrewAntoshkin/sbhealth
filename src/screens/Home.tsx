@@ -1,8 +1,9 @@
-import { useState } from 'react'
+import { useCallback, useRef, useState } from 'react'
 import { ArrowRight, ArrowUpRight, BookOpenText, CalendarCheck, ChatCircleText, Info, VideoCamera, Buildings } from '@phosphor-icons/react'
 import { Booking } from '../Booking'
 import { ARTICLES } from '../data/articles'
 import { doctorById, doctorFor, roleTo, threadOf } from '../data/doctors'
+import { IndexSheet } from '../IndexSheet'
 import { TopActions } from '../TopActions'
 import { DURATION, MODE_LABEL, nextAppointment, useCore, type Appointment } from '../store'
 import { cap, fmtDay, fmtDayLong, fmtTime, inDays } from '../time'
@@ -36,11 +37,27 @@ function today() {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
-export function Home({ onAtlas, go }: { onAtlas: (id?: SystemId) => void; go: (to: string) => void }) {
+export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; go: (to: string) => void; open?: 'index' }) {
+  const [indexOpen, setIndexOpen] = useState(open === 'index')
   const [booking, setBooking] = useState<{ systemId: SystemId; replace?: Appointment } | null>(null)
   const core = useCore()
   const appt = nextAppointment(core.appts)
-  const overlay = booking !== null
+  const overlay = indexOpen || booking !== null
+
+  const opener = useRef<HTMLElement | null>(null)
+
+  const openIndex = useCallback((from: HTMLElement | null) => {
+    opener.current = from
+    setIndexOpen(true)
+  }, [])
+  const closeIndex = useCallback(() => {
+    setIndexOpen(false)
+    // адрес вида #/home/index больше не нужен — не плодим записи в истории
+    if (open) window.history.replaceState(null, '', '#/home')
+    // вернуть фокус после того, как фон перестанет быть inert
+    requestAnimationFrame(() => opener.current?.focus({ preventScroll: true }))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
 
   const onTab = (tab: DockTab) => {
     if (tab === 'atlas') onAtlas()
@@ -58,8 +75,8 @@ export function Home({ onAtlas, go }: { onAtlas: (id?: SystemId) => void; go: (t
         <div className="hm-wrap">
           <header className="hm-top tab-head">
             <div>
-              <h1>{greeting()}</h1>
-              <p>{today()}</p>
+              <h1>Сводка</h1>
+              <p>{`${greeting()} · ${today().toLowerCase()}`}</p>
             </div>
             <TopActions go={go} />
           </header>
@@ -82,7 +99,8 @@ export function Home({ onAtlas, go }: { onAtlas: (id?: SystemId) => void; go: (t
                   className="hm-info"
                   type="button"
                   aria-label="Как считается индекс"
-                  onClick={() => go('#/index')}
+                  aria-haspopup="dialog"
+                  onClick={(event) => openIndex(event.currentTarget)}
                 >
                   <Info size={20} weight="bold" aria-hidden="true" />
                 </button>
@@ -249,6 +267,16 @@ export function Home({ onAtlas, go }: { onAtlas: (id?: SystemId) => void; go: (t
       <div inert={overlay || undefined}>
         <Dock active="home" onGo={onTab} />
       </div>
+
+      {indexOpen && (
+        <IndexSheet
+          onClose={closeIndex}
+          onSelect={(id) => {
+            setIndexOpen(false)
+            onAtlas(id)
+          }}
+        />
+      )}
 
       {booking && (
         <Booking

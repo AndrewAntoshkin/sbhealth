@@ -1680,36 +1680,13 @@ img.bk-ava { display: block; background: #dfe6e8; object-fit: cover; }
 h1, h2, h3, .nx-title, .mg-fresh b { text-wrap: balance; }
 p, li { text-wrap: pretty; }
 
-/* ——— Индекс здоровья отдельной страницей ——— */
-.ixp-wrap {
-  display: flex;
-  flex-direction: column;
-  gap: 22px;
-  max-width: 540px;
-  margin: 0 auto;
-  padding: calc(18px + env(safe-area-inset-top)) 16px calc(124px + env(safe-area-inset-bottom));
-}
-
-.ixp-head { display: flex; align-items: center; gap: 14px; padding: 0 4px; }
-.ixp-head p { margin: 0; color: var(--muted); font-size: 14px; font-weight: 500; }
-.ixp-head h1 { margin: 2px 0 0; font-size: 30px; font-weight: 550; letter-spacing: -0.055em; line-height: 1.05; }
-
+/* ——— Содержимое индекса (в шторке) ——— */
 .ix-page, .ix-col { display: flex; flex-direction: column; gap: 14px; }
 .ix-page .card { margin-top: 0; }
 .ix-fine { margin: 4px 4px 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
 
-@media not ((min-width: 960px) or ((orientation: landscape) and (min-width: 640px) and (max-height: 520px))) {
-  .ixp-wrap { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
-}
-
-@media (min-width: 960px), (orientation: landscape) and (min-width: 640px) and (max-height: 520px) {
-  .ixp-wrap { max-width: 1080px; padding: 28px 32px 132px; }
-  .ix-page { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 24px; }
-  .ix-fine { grid-column: 1 / -1; }
-}
-
 /* ——— Единые заголовки страниц ——— */
-.tab-head h1, .hm-top h1, .mg-list h1, .ixp-head h1, .top h1, .pf-id h1, .dp-hero h1, .ln-hero h1 {
+.tab-head h1, .hm-top h1, .mg-list h1, .top h1, .pf-id h1, .dp-hero h1, .ln-hero h1 {
   margin: 0;
   font-size: 24px;
   font-weight: 600;
@@ -1717,7 +1694,7 @@ p, li { text-wrap: pretty; }
   line-height: 1.1;
 }
 
-.tab-head p, .hm-top p, .ixp-head p, .top .kicker, .pf-id p, .dp-hero > p {
+.tab-head p, .hm-top p, .top .kicker, .pf-id p, .dp-hero > p {
   margin: 3px 0 0;
   color: var(--muted);
   font-size: 13.5px;
@@ -1729,8 +1706,8 @@ p, li { text-wrap: pretty; }
 .hm-bell, .ta-ava { width: 44px; height: 44px; }
 .hm-bell em { top: -4px; right: -4px; }
 
-.tab-head, .hm-top, .ixp-head { min-height: 44px; }
-.hm-wrap, .mg-list, .pf-wrap, .dr-wrap, .ln-wrap, .ixp-wrap, .dp-wrap { padding-top: calc(14px + env(safe-area-inset-top)); }
+.tab-head, .hm-top { min-height: 44px; }
+.hm-wrap, .mg-list, .pf-wrap, .dr-wrap, .ln-wrap, .dp-wrap { padding-top: calc(14px + env(safe-area-inset-top)); }
 .top { padding-top: calc(14px + env(safe-area-inset-top)); padding-bottom: 10px; }
 
 .stage-chip { position: absolute; top: 12px; left: 12px; z-index: 3; }
@@ -1738,7 +1715,7 @@ p, li { text-wrap: pretty; }
 .top { padding-left: 20px; padding-right: 20px; }
 
 @media (min-width: 960px), (orientation: landscape) and (min-width: 640px) and (max-height: 520px) {
-  .hm-wrap, .mg-list, .pf-wrap, .dr-wrap, .ln-wrap, .ixp-wrap, .dp-wrap { padding-top: 24px; }
+  .hm-wrap, .mg-list, .pf-wrap, .dr-wrap, .ln-wrap, .dp-wrap { padding-top: 24px; }
   .mg-wrap { padding-top: 24px; }
   .top { padding-top: 20px; padding-left: 24px; padding-right: 24px; }
 }
