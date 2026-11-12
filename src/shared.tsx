@@ -118,7 +118,6 @@ export function ScoreChip({
       ref={buttonRef}
       className="score"
       type="button"
-      aria-haspopup="dialog"
       aria-label={`Индекс здоровья ${value} из 100. ${tone}. Открыть, как он считается`}
       onClick={onOpen}
     >

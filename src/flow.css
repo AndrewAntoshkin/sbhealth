@@ -1675,3 +1675,35 @@ img.bk-ava { display: block; background: #dfe6e8; object-fit: cover; }
   .hm-wrap, .mg-list, .pf-wrap, .dr-wrap, .ln-wrap { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
   .app.atlas .workspace { padding-bottom: calc(66px + env(safe-area-inset-bottom)); }
 }
+
+/* Переносы: заголовки балансируем, абзацы без «висячих» одиночных слов */
+h1, h2, h3, .nx-title, .mg-fresh b { text-wrap: balance; }
+p, li { text-wrap: pretty; }
+
+/* ——— Индекс здоровья отдельной страницей ——— */
+.ixp-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  max-width: 540px;
+  margin: 0 auto;
+  padding: calc(18px + env(safe-area-inset-top)) 16px calc(124px + env(safe-area-inset-bottom));
+}
+
+.ixp-head { display: flex; align-items: center; gap: 14px; padding: 0 4px; }
+.ixp-head p { margin: 0; color: var(--muted); font-size: 14px; font-weight: 500; }
+.ixp-head h1 { margin: 2px 0 0; font-size: 30px; font-weight: 550; letter-spacing: -0.055em; line-height: 1.05; }
+
+.ix-page, .ix-col { display: flex; flex-direction: column; gap: 14px; }
+.ix-page .card { margin-top: 0; }
+.ix-fine { margin: 4px 4px 0; color: var(--muted); font-size: 12px; line-height: 1.45; }
+
+@media not ((min-width: 960px) or ((orientation: landscape) and (min-width: 640px) and (max-height: 520px))) {
+  .ixp-wrap { padding-bottom: calc(96px + env(safe-area-inset-bottom)); }
+}
+
+@media (min-width: 960px), (orientation: landscape) and (min-width: 640px) and (max-height: 520px) {
+  .ixp-wrap { max-width: 1080px; padding: 28px 32px 132px; }
+  .ix-page { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); align-items: start; gap: 24px; }
+  .ix-fine { grid-column: 1 / -1; }
+}

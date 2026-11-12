@@ -1,11 +1,12 @@
 import { flushSync } from 'react-dom'
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react'
 import { SYSTEMS, type SystemId } from './data/systems'
 import { Home } from './screens/Home'
 import { Messages } from './screens/Messages'
 import { Profile } from './screens/Profile'
 import { DoctorProfile, Doctors } from './screens/Doctors'
 import { Learn } from './screens/Learn'
+import { IndexPage } from './screens/Index'
 import type { DockTab } from './screens/Dock'
 import { Toaster } from './Toaster'
 import { Start } from './screens/Start'
@@ -14,11 +15,12 @@ import { Start } from './screens/Start'
 const loadAtlas = () => import('./screens/Atlas')
 const Atlas = lazy(() => loadAtlas().then((m) => ({ default: m.Atlas })))
 
-type Route = { name: 'start' } | { name: 'home'; open?: 'index' } | { name: 'doctors'; id: string | null } | { name: 'learn'; id: string | null } | { name: 'messages'; id: string | null } | { name: 'profile' } | { name: 'atlas'; id: SystemId | null }
+type Route = { name: 'start' } | { name: 'home' } | { name: 'doctors'; id: string | null } | { name: 'learn'; id: string | null } | { name: 'messages'; id: string | null } | { name: 'profile' } | { name: 'index' } | { name: 'atlas'; id: SystemId | null }
 
 function parse(hash: string): Route {
   const [, name, id] = hash.replace(/^#/, '').split('/')
-  if (name === 'home') return { name: 'home', open: id === 'index' ? id : undefined }
+  if (name === 'home') return { name: 'home' }
+  if (name === 'index') return { name: 'index' }
   if (name === 'profile') return { name: 'profile' }
   if (name === 'doctors') return { name: 'doctors', id: id || null }
   if (name === 'learn') return { name: 'learn', id: id || null }
@@ -30,9 +32,11 @@ function parse(hash: string): Route {
 
 export function App() {
   const [route, setRoute] = useState<Route>(() => parse(window.location.hash))
+  const moved = useRef(false)
 
   useEffect(() => {
     const onChange = () => {
+      moved.current = true
       const next = parse(window.location.hash)
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
       const swap = () => flushSync(() => setRoute(next))
@@ -72,7 +76,8 @@ export function App() {
 
   let screen
   if (route.name === 'start') screen = <Start onStart={() => go('#/atlas')} />
-  else if (route.name === 'home') screen = <Home key={route.open ?? 'home'} open={route.open} go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} />
+  else if (route.name === 'home') screen = <Home go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} />
+  else if (route.name === 'index') screen = <IndexPage onBack={() => (moved.current ? window.history.back() : go('#/home'))} onTab={onTab} onAtlas={(id) => go(`#/atlas/${id}`)} />
   else if (route.name === 'profile') screen = <Profile go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} onTab={onTab} />
   else if (route.name === 'doctors') screen = route.id ? <DoctorProfile key={route.id} id={route.id} go={go} onAtlas={(id) => go(`#/atlas/${id}`)} /> : <Doctors go={go} onTab={onTab} />
   else if (route.name === 'learn') screen = <Learn id={route.id} go={go} onTab={onTab} onAtlas={(id) => go(`#/atlas/${id}`)} />

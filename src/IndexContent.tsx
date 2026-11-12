@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import { useEffect, useState } from 'react'
 import {
   MESH_COLOR,
   RISK_INK,
@@ -29,52 +29,15 @@ const fmt = (value: number, digits = 1) => value.toFixed(digits).replace('.', ',
 const toneInk = (value: number) => (value >= 75 ? RISK_INK.low : value >= 55 ? RISK_INK.watch : RISK_INK.high)
 const toneSoft = (value: number) => (value >= 75 ? RISK_SOFT.low : value >= 55 ? RISK_SOFT.watch : RISK_SOFT.high)
 
-const WIDE = '(min-width: 960px), (orientation: landscape) and (min-width: 640px) and (max-height: 520px)'
-
-export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelect: (id: SystemId) => void }) {
+export function IndexContent({ onSelect }: { onSelect: (id: SystemId) => void }) {
   const [shown, setShown] = useState(false)
-  const [dy, setDy] = useState(0)
-  const [dragging, setDragging] = useState(false)
   const [what, setWhat] = useState<SystemId>(TOP3[0].id)
   const [delta, setDelta] = useState(20)
-  const dialog = useRef<HTMLDivElement>(null)
-  const drag = useRef<{ y: number; t: number; pid: number } | null>(null)
 
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => setShown(true))
-    dialog.current?.focus({ preventScroll: true })
     return () => window.cancelAnimationFrame(frame)
   }, [])
-
-  const down = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if ((event.target as HTMLElement).closest('button')) return
-    // на широком экране это боковой дровер: вниз его не тянут
-    if (window.matchMedia(WIDE).matches) return
-    drag.current = { y: event.clientY, t: performance.now(), pid: event.pointerId }
-    setDragging(true)
-    try {
-      event.currentTarget.setPointerCapture(event.pointerId)
-    } catch {
-      /* синтетические события без захвата */
-    }
-  }
-  const move = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!drag.current) return
-    setDy(Math.max(0, event.clientY - drag.current.y))
-  }
-  const up = (event: ReactPointerEvent<HTMLDivElement>) => {
-    const start = drag.current
-    if (!start) return
-    drag.current = null
-    setDragging(false)
-    const distance = Math.max(0, event.clientY - start.y)
-    const speed = distance / Math.max(1, performance.now() - start.t)
-    if (distance > 120 || (distance > 36 && speed > 0.5)) {
-      onClose()
-      return
-    }
-    setDy(0)
-  }
 
   const picked = SYSTEMS.find((item) => item.id === what) ?? TOP3[0]
   const gainRisk = Math.min(delta, picked.risk)
@@ -91,39 +54,9 @@ export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelec
   }))
 
   return (
-    <div className="modal" onPointerDown={(event) => event.target === event.currentTarget && onClose()}>
-      <div
-        ref={dialog}
-        className={`modal-sheet${dragging ? ' is-dragging' : ''}`}
-        style={{ transform: dy ? `translateY(${dy}px)` : undefined }}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="ix-title"
-        tabIndex={-1}
-      >
-        <div
-          className="modal-grab"
-          onPointerDown={down}
-          onPointerMove={move}
-          onPointerUp={up}
-          onPointerCancel={up}
-        >
-          <i aria-hidden="true" />
-          <div className="modal-head">
-            <div>
-              <p className="card-kicker">Как это считается</p>
-              <h2 id="ix-title">Индекс здоровья</h2>
-            </div>
-            <button className="modal-close" type="button" aria-label="Закрыть" onClick={onClose}>
-              <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
-                <path d="M6 6l12 12M18 6L6 18" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" />
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div className="modal-body">
-          <section className="card ix-hero">
+    <div className="ix-page">
+      <div className="ix-col">
+        <section className="card ix-hero">
             <div className="ix-hero-top">
               <Ring value={INDEX} shown={shown} />
               <div>
@@ -138,8 +71,7 @@ export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelec
             </div>
             <Scale value={INDEX} />
           </section>
-
-          <section className="card">
+        <section className="card">
             <h3>Из чего складывается</h3>
             <p className="ix-sub">Риск по каждой системе. Пунктир — средний риск ({fmt(MEAN_RISK, 0)}). Нажмите на строку, чтобы открыть орган.</p>
             <div className="ix-bars">
@@ -168,8 +100,32 @@ export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelec
               })}
             </div>
           </section>
-
-          <section className="card">
+        <section className="card">
+            <h3>Что тянет индекс вниз</h3>
+            <p className="ix-sub">Сколько пунктов из {fmt(LOSS, 0)} потерянных даёт каждая система.</p>
+            {TOP3.map((item, index) => {
+              const points = item.risk / COUNT
+              const level = levelOf(item.risk)
+              return (
+                <button key={item.id} className="ix-load" type="button" onClick={() => onSelect(item.id)}>
+                  <span className="ix-load-top">
+                    <span>{index + 1}. {item.name}</span>
+                    <b style={{ color: RISK_INK[level] }}>−{fmt(points)}</b>
+                  </span>
+                  <span className="ix-track">
+                    <span
+                      className="ix-fill"
+                      style={{ ['--v' as string]: (points / (TOP3[0].risk / COUNT)) * 100, ['--i' as string]: index, background: MESH_COLOR[level] }}
+                    />
+                  </span>
+                  <small>{fmt((points / LOSS) * 100, 0)}% от всей потери</small>
+                </button>
+              )
+            })}
+          </section>
+      </div>
+      <div className="ix-col">
+        <section className="card">
             <h3>Пример расчёта</h3>
             <p className="ix-sub">Берём запас каждой системы, складываем и делим на {COUNT}.</p>
             {examples.map((item) => (
@@ -194,8 +150,7 @@ export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelec
               </strong>
             </div>
           </section>
-
-          <section className="card">
+        <section className="card">
             <h3>Сколько систем в каждой зоне</h3>
             <div className="ix-seg" role="img" aria-label={counts.map((c) => `${RISK_LABEL[c.level]}: ${c.n}`).join(', ')}>
               {counts
@@ -216,8 +171,7 @@ export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelec
               ))}
             </div>
           </section>
-
-          <section className="card">
+        <section className="card">
             <div className="ix-title-row">
               <h3>Динамика за 8 недель</h3>
             </div>
@@ -230,32 +184,7 @@ export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelec
               <span>сейчас</span>
             </div>
           </section>
-
-          <section className="card">
-            <h3>Что тянет индекс вниз</h3>
-            <p className="ix-sub">Сколько пунктов из {fmt(LOSS, 0)} потерянных даёт каждая система.</p>
-            {TOP3.map((item, index) => {
-              const points = item.risk / COUNT
-              const level = levelOf(item.risk)
-              return (
-                <button key={item.id} className="ix-load" type="button" onClick={() => onSelect(item.id)}>
-                  <span className="ix-load-top">
-                    <span>{index + 1}. {item.name}</span>
-                    <b style={{ color: RISK_INK[level] }}>−{fmt(points)}</b>
-                  </span>
-                  <span className="ix-track">
-                    <span
-                      className="ix-fill"
-                      style={{ ['--v' as string]: (points / (TOP3[0].risk / COUNT)) * 100, ['--i' as string]: index, background: MESH_COLOR[level] }}
-                    />
-                  </span>
-                  <small>{fmt((points / LOSS) * 100, 0)}% от всей потери</small>
-                </button>
-              )
-            })}
-          </section>
-
-          <section className="card">
+        <section className="card">
             <h3>А если улучшить?</h3>
             <p className="ix-sub">Выберите систему и сдвиньте ползунок, насколько снизится риск.</p>
             <div className="ix-picks" role="group" aria-label="Система для примера">
@@ -305,12 +234,10 @@ export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelec
               <b>Что для этого сделать.</b> {picked.advice}
             </p>
           </section>
-
-          <p className="fine">
+      </div>
+      <p className="fine ix-fine">
             Расчёт показательный: риски не являются диагнозом и служат ориентиром, куда посмотреть в первую очередь.
           </p>
-        </div>
-      </div>
     </div>
   )
 }

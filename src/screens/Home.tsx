@@ -1,7 +1,6 @@
-import { useCallback, useRef, useState } from 'react'
+import { useState } from 'react'
 import { ArrowRight, ArrowUpRight, BookOpenText, CalendarCheck, ChatCircleText, Info, VideoCamera, Buildings } from '@phosphor-icons/react'
 import { Booking } from '../Booking'
-import { IndexSheet } from '../IndexSheet'
 import { ARTICLES } from '../data/articles'
 import { doctorById, doctorFor, roleTo, threadOf } from '../data/doctors'
 import { TopActions } from '../TopActions'
@@ -37,31 +36,11 @@ function today() {
   return text.charAt(0).toUpperCase() + text.slice(1)
 }
 
-export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; go: (to: string) => void; open?: 'index' }) {
-  const [indexOpen, setIndexOpen] = useState(open === 'index')
+export function Home({ onAtlas, go }: { onAtlas: (id?: SystemId) => void; go: (to: string) => void }) {
   const [booking, setBooking] = useState<{ systemId: SystemId; replace?: Appointment } | null>(null)
   const core = useCore()
   const appt = nextAppointment(core.appts)
-  const overlay = indexOpen || booking !== null
-
-  const opener = useRef<HTMLElement | null>(null)
-
-  const clearOpen = () => {
-    // адрес вида #/home/index больше не нужен — не плодим записи в истории
-    if (open) window.history.replaceState(null, '', '#/home')
-  }
-
-  const openIndex = useCallback((from: HTMLElement | null) => {
-    opener.current = from
-    setIndexOpen(true)
-  }, [])
-  const closeIndex = useCallback(() => {
-    setIndexOpen(false)
-    clearOpen()
-    // вернуть фокус после того, как фон перестанет быть inert
-    requestAnimationFrame(() => opener.current?.focus({ preventScroll: true }))
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
+  const overlay = booking !== null
 
   const onTab = (tab: DockTab) => {
     if (tab === 'atlas') onAtlas()
@@ -103,8 +82,7 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
                   className="hm-info"
                   type="button"
                   aria-label="Как считается индекс"
-                  aria-haspopup="dialog"
-                  onClick={(event) => openIndex(event.currentTarget)}
+                  onClick={() => go('#/index')}
                 >
                   <Info size={20} weight="bold" aria-hidden="true" />
                 </button>
@@ -147,7 +125,7 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
             <section className="hm-next" aria-labelledby="hm-next" style={{ ['--soft' as string]: RISK_SOFT[topLevel], ['--c' as string]: MESH_COLOR[topLevel] }}>
               <img className="nx-thumb" src={thumb(top.id)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false} />
               <p className="hm-kicker" id="hm-next">Следующий шаг</p>
-              <h2 className="nx-title">Запишитесь к {roleTo(doctorFor(top.id))}</h2>
+              <h2 className="nx-title">{`Запишитесь к ${roleTo(doctorFor(top.id))}`}</h2>
               <p className="nx-text">Самая заметная зона в атласе — «{ORGAN_TITLE[top.id]}». Приём займёт 30 минут, время выберете сами.</p>
               <div className="nx-actions">
                 <button type="button" className="nx-btn is-dark" onClick={() => setBooking({ systemId: top.id })}>
@@ -271,16 +249,6 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
       <div inert={overlay || undefined}>
         <Dock active="home" onGo={onTab} />
       </div>
-
-      {indexOpen && (
-        <IndexSheet
-          onClose={closeIndex}
-          onSelect={(id) => {
-            setIndexOpen(false)
-            onAtlas(id)
-          }}
-        />
-      )}
 
       {booking && (
         <Booking

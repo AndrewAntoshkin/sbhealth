@@ -15,7 +15,6 @@ import { Dock, type DockTab } from './Dock'
 import { doctorById, doctorFor, roleTo } from '../data/doctors'
 import { MODE_LABEL, cancelAppointment, useCore, type Appointment } from '../store'
 import { fmtDay, fmtTime, inDays } from '../time'
-import { IndexSheet } from '../IndexSheet'
 import {
   MESH_COLOR,
   RISK_INK,
@@ -43,7 +42,6 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
   const [peek, setPeek] = useState(0)
   const [inset, setInset] = useState(0)
   const [hint, setHint] = useState(true)
-  const [scoreOpen, setScoreOpen] = useState(false)
   const [modelReady, setModelReady] = useState(false)
   useEffect(() => {
     if (modelReady) window.dispatchEvent(new Event('atlas-ready'))
@@ -77,21 +75,8 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
     })
   }, [selected])
 
-  const closeScore = useCallback(() => setScoreOpen(false), [])
-  const scoreWas = useRef(false)
-
-  useEffect(() => {
-    // фокус возвращается на кнопку индекса уже после того, как фон перестал быть inert
-    if (scoreWas.current && !scoreOpen) chipRef.current?.focus({ preventScroll: true })
-    scoreWas.current = scoreOpen
-  }, [scoreOpen])
-
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
-      if (scoreOpen) {
-        if (event.key === 'Escape') closeScore()
-        return
-      }
       if (event.key === 'Escape') {
         setSelected(null)
         return
@@ -104,11 +89,11 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [selected, scoreOpen, closeScore])
+  }, [selected])
 
   return (
     <div className="app atlas">
-      <header className="top" inert={scoreOpen || undefined}>
+      <header className="top">
         {selected && (
           <button className="back" type="button" aria-label="Ко всему телу" onClick={() => setSelected(null)}>
             <CaretLeft size={20} weight="bold" aria-hidden="true" />
@@ -118,10 +103,10 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
           <h1>Атлас тела</h1>
           <p className="kicker">13 систем</p>
         </div>
-        <ScoreChip value={INDEX} tone={TONE} buttonRef={chipRef} onOpen={() => setScoreOpen(true)} />
+        <ScoreChip value={INDEX} tone={TONE} buttonRef={chipRef} onOpen={() => go('#/index')} />
       </header>
 
-      <div className="workspace" inert={scoreOpen || undefined}>
+      <div className="workspace">
         <div className="stage" onPointerDownCapture={() => setHint(false)}>
           {/* готовый кадр тела: виден сразу, пока качается и собирается настоящая модель */}
           <img className="poster" data-ready={modelReady || undefined} src={POSTER} alt="" aria-hidden="true" fetchPriority="high" decoding="async" />
@@ -278,7 +263,7 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
         )}
       </div>
 
-      <div inert={scoreOpen || undefined}>
+      <div>
         <Dock active="atlas" onGo={(tab) => onTab(tab)} />
       </div>
 
@@ -290,16 +275,6 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
           onChat={(to) => {
             setBooking(null)
             go(to)
-          }}
-        />
-      )}
-
-      {scoreOpen && (
-        <IndexSheet
-          onClose={closeScore}
-          onSelect={(id) => {
-            setScoreOpen(false)
-            setSelected(id)
           }}
         />
       )}
