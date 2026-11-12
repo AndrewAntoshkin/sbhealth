@@ -1564,7 +1564,7 @@ img.bk-ava { display: block; background: #dfe6e8; object-fit: cover; }
   .ln-wrap:has(.ln-article) { max-width: 760px; }
   .hm-learn .ln-rail { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0; padding: 0; overflow: visible; }
   .hm-learn .ln-rail li { min-width: 0; }
-  .hm-learn .ln-rail li:nth-child(n + 5) { display: none; }
+  .hm-learn .ln-rail li:nth-child(n + 3) { display: none; }
   .hm-learn .ln-card { min-height: 0; height: 100%; padding: 14px 16px 16px; }
   .hm-learn .ln-card img, .hm-learn .ln-mark { width: 52px; height: 52px; margin-bottom: 10px; }
   .hm-learn .ln-card small { margin-top: 0; }
