@@ -405,3 +405,74 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   .top h1 { font-size: 18px; }
   .dx-num b { font-size: 72px; }
 }
+
+/* ——— Раскрытая шторка: лента систем становится компактной полосой ——— */
+.sheet.is-grown {
+  background: #f5f7fa;
+  border-color: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 -20px 50px -24px rgba(var(--tint), 0.45);
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.sheet.is-deck.is-grown .deck {
+  gap: 8px;
+  padding: 18px 16px 12px;
+  scroll-snap-type: none;
+  scroll-padding-inline: 16px;
+  cursor: default;
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 28px), transparent 100%);
+  mask-image: linear-gradient(90deg, transparent 0, #000 16px, #000 calc(100% - 28px), transparent 100%);
+}
+
+.sheet.is-deck.is-grown .deck .dcard,
+.sheet.is-deck.is-grown .deck .dcard:not(.is-on),
+.sheet.is-deck.is-grown .deck .dcard.is-on {
+  flex: 0 0 auto;
+  grid-template-columns: 36px auto;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 16px 6px 6px;
+  border: 0;
+  border-radius: 99px;
+  background: #fff;
+  box-shadow: 0 10px 20px -16px rgba(var(--tint), 0.6);
+  opacity: 1;
+  transform: none;
+  scroll-snap-align: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.sheet.is-deck.is-grown .deck .dcard.is-on {
+  background: var(--ink);
+  color: #fff;
+  box-shadow: 0 14px 24px -14px rgba(16, 21, 28, 0.6);
+}
+
+.sheet.is-deck.is-grown .dthumb { width: 36px; height: 36px; border-radius: 50%; }
+.sheet.is-deck.is-grown .dthumb img { transform: scale(1.12); }
+
+.sheet.is-deck.is-grown .dname { padding: 0; font-size: 15px; font-weight: 600; letter-spacing: -0.03em; line-height: 1.2; white-space: nowrap; }
+.sheet.is-deck.is-grown .dtag,
+.sheet.is-deck.is-grown .dbody .risk-tag-pill,
+.sheet.is-deck.is-grown .dsum,
+.sheet.is-deck.is-grown .dchev { display: none; }
+
+.sheet.is-deck.is-grown .dcard:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+.dcard:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; }
+
+.sheet.is-grown .deck-handle { top: 8px; }
+
+/* заголовок системы в раскрытой шторке */
+.dx-head h2 {
+  margin: 0;
+  font-size: 32px;
+  font-weight: 600;
+  letter-spacing: -0.055em;
+  line-height: 1.05;
+}
+
+.dx-head p { margin: 6px 0 0; color: var(--muted); font-size: 14.5px; line-height: 1.35; }
+
+.sheet-body { padding-top: 6px; }

@@ -157,6 +157,8 @@ export function Atlas({ initial, onHome }: { initial: SystemId | null; onHome: (
                       level={level}
                       backLabel="Ко всему телу"
                       onBack={() => setSelected(null)}
+                      withSummary
+                      head
                     />
                     <Fine />
                   </Sheet>
@@ -315,16 +317,25 @@ function OrganDetail({
   backLabel,
   onBack,
   withSummary = false,
+  head = false,
 }: {
   system: BodySystem
   level: RiskLevel
   backLabel: string
   onBack: () => void
   withSummary?: boolean
+  head?: boolean
 }) {
   const [asked, setAsked] = useState(false)
   return (
     <div className="dx" style={{ ['--c' as string]: MESH_COLOR[level], ['--soft' as string]: RISK_SOFT[level], ['--ink-risk' as string]: RISK_INK[level] }}>
+      {head && (
+        <header className="dx-head">
+          <h2>{ORGAN_TITLE[system.id]}</h2>
+          <p>{system.covers}</p>
+        </header>
+      )}
+
       <section className="dx-score" aria-label="Уровень риска">
         <div className="dx-num">
           <b>{system.risk}</b>
@@ -407,10 +418,13 @@ function OrganDeck({
     scroller.scrollTo({ left, behavior: smooth && !reduce ? 'smooth' : 'auto' })
   }, [])
 
+  const grownRef = useRef(grown)
+  grownRef.current = grown
+
   useLayoutEffect(() => {
     center(selected, !first.current)
     first.current = false
-  }, [selected, center])
+  }, [selected, grown, center])
 
   // колесо мыши: одно движение — одна карточка (горизонтальный тачпад листает сам браузер)
   const selectedRef = useRef(selected)
@@ -425,6 +439,7 @@ function OrganDeck({
     let lock = 0
     const onWheel = (event: WheelEvent) => {
       if (Math.abs(event.deltaX) >= Math.abs(event.deltaY)) return
+      if (grownRef.current) return
       event.preventDefault()
       const now = performance.now()
       if (now < lock) return
@@ -443,6 +458,7 @@ function OrganDeck({
   // когда лента остановилась, выбираем карточку по центру
   const onScroll = () => {
     window.clearTimeout(timer.current)
+    if (grownRef.current) return // в компактной ленте выбирают нажатием
     timer.current = window.setTimeout(() => {
       const scroller = ref.current
       if (!scroller) return
@@ -549,6 +565,8 @@ function Sheet({
       const next = Math.ceil(el.getBoundingClientRect().height)
       if (!next) return
       const collapsed = heightRef.current === 0 || heightRef.current <= peekRef.current + 1
+      // раскрытая шторка перестраивает ленту в компактную — высоту «свёрнуто» не трогаем
+      if (!collapsed) return
       peekRef.current = next
       setPeek(next)
       if (collapsed) setH(next)
