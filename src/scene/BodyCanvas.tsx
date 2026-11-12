@@ -28,6 +28,8 @@ interface Props {
   /** Сколько px снизу сейчас закрыто шторкой. */
   inset: number
   onSelect: (id: SystemId | null) => void
+  /** Модель собрана и первый кадр уже нарисован. */
+  onReady?: () => void
 }
 
 const TAN_HALF_FOV = Math.tan((28 * Math.PI) / 360)
@@ -39,7 +41,7 @@ function homeDistance(stageHeight: number, peek: number) {
   return THREE.MathUtils.clamp(view / (2 * TAN_HALF_FOV), 3.9, 7)
 }
 
-export function BodyCanvas({ selected, resetSignal, peek, inset, onSelect }: Props) {
+export function BodyCanvas({ selected, resetSignal, peek, inset, onSelect, onReady }: Props) {
   return (
     <>
       <Canvas
@@ -53,7 +55,7 @@ export function BodyCanvas({ selected, resetSignal, peek, inset, onSelect }: Pro
         }}
       >
         <Suspense fallback={null}>
-          <Scene selected={selected} resetSignal={resetSignal} peek={peek} inset={inset} onSelect={onSelect} />
+          <Scene selected={selected} resetSignal={resetSignal} peek={peek} inset={inset} onSelect={onSelect} onReady={onReady} />
         </Suspense>
       </Canvas>
       <Loader />
@@ -110,8 +112,21 @@ function goHome(rig: CameraControlsImpl, stageHeight: number, peek: number, anim
   void rig.setLookAt(position.x, position.y, position.z, HOME_TARGET.x, HOME_TARGET.y, HOME_TARGET.z, animate)
 }
 
-function Scene({ selected, resetSignal, peek, inset, onSelect }: Props) {
+function Scene({ selected, resetSignal, peek, inset, onSelect, onReady }: Props) {
   const gltf = useGLTF(MODEL_URL)
+  const onReadyRef = useRef(onReady)
+  onReadyRef.current = onReady
+  useEffect(() => {
+    // сцена смонтирована после загрузки модели: ждём два кадра, чтобы постер не исчез раньше тела
+    let second = 0
+    const first = requestAnimationFrame(() => {
+      second = requestAnimationFrame(() => onReadyRef.current?.())
+    })
+    return () => {
+      cancelAnimationFrame(first)
+      cancelAnimationFrame(second)
+    }
+  }, [])
   const group = useRef<THREE.Group>(null)
   const controls = useRef<CameraControlsImpl>(null)
   const spin = useRef(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)

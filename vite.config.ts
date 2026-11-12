@@ -8,7 +8,8 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      injectRegister: 'auto',
+      // регистрируем сами, когда модель уже показана (src/main.tsx)
+      injectRegister: false,
       includeAssets: ['favicon.svg', 'icons/icon-192.png', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'Атлас систем',

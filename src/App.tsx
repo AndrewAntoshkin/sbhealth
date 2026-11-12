@@ -2,12 +2,13 @@ import {
   useCallback,
   useEffect,
   useLayoutEffect,
+  lazy,
+  Suspense,
   useRef,
   useState,
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react'
-import { BodyCanvas } from './scene/BodyCanvas'
 import { IndexSheet } from './IndexSheet'
 import {
   MESH_COLOR,
@@ -23,6 +24,10 @@ import {
   type RiskLevel,
   type SystemId,
 } from './data/systems'
+
+// 3D-сцена (three + r3f) — отдельный чанк: интерфейс рисуется, пока он качается
+const BodyCanvas = lazy(() => import('./scene/BodyCanvas').then((m) => ({ default: m.BodyCanvas })))
+const POSTER = `${import.meta.env.BASE_URL}poster.webp`
 
 const ORGAN_TITLE: Record<SystemId, string> = {
   cardiovascular: 'Сердце',
@@ -56,6 +61,10 @@ export function App() {
   const [inset, setInset] = useState(0)
   const [hint, setHint] = useState(true)
   const [scoreOpen, setScoreOpen] = useState(false)
+  const [modelReady, setModelReady] = useState(false)
+  useEffect(() => {
+    if (modelReady) window.dispatchEvent(new Event('atlas-ready'))
+  }, [modelReady])
   const chipRef = useRef<HTMLButtonElement>(null)
   const wide = useWide()
   const system = selected ? systemById(selected) : null
@@ -129,13 +138,18 @@ export function App() {
 
       <div className="workspace" inert={scoreOpen || undefined}>
         <div className="stage" onPointerDownCapture={() => setHint(false)}>
-          <BodyCanvas
-            selected={selected}
-            resetSignal={resetSignal}
-            peek={wide ? 0 : peek}
-            inset={wide ? 0 : inset}
-            onSelect={(id) => setSelected(id)}
-          />
+          {/* готовый кадр тела: виден сразу, пока качается и собирается настоящая модель */}
+          <img className="poster" data-ready={modelReady || undefined} src={POSTER} alt="" aria-hidden="true" fetchPriority="high" decoding="async" />
+          <Suspense fallback={<div className="loader" role="status"><div className="loader-orbit" /><p>Собираем тело</p></div>}>
+            <BodyCanvas
+              selected={selected}
+              resetSignal={resetSignal}
+              peek={wide ? 0 : peek}
+              inset={wide ? 0 : inset}
+              onSelect={(id) => setSelected(id)}
+              onReady={() => setModelReady(true)}
+            />
+          </Suspense>
 
           {!wide && (
             <div className="phone-ui">
