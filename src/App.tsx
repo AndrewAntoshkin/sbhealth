@@ -83,10 +83,14 @@ export function App() {
     })
   }, [selected])
 
-  const closeScore = useCallback(() => {
-    setScoreOpen(false)
-    chipRef.current?.focus({ preventScroll: true })
-  }, [])
+  const closeScore = useCallback(() => setScoreOpen(false), [])
+  const scoreWas = useRef(false)
+
+  useEffect(() => {
+    // фокус возвращается на кнопку индекса уже после того, как фон перестал быть inert
+    if (scoreWas.current && !scoreOpen) chipRef.current?.focus({ preventScroll: true })
+    scoreWas.current = scoreOpen
+  }, [scoreOpen])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -110,7 +114,7 @@ export function App() {
 
   return (
     <div className="app">
-      <header className="top">
+      <header className="top" inert={scoreOpen || undefined}>
         <div className="brand">
           <Mark />
           <div>
@@ -121,7 +125,7 @@ export function App() {
         <ScoreChip value={INDEX} tone={TONE} buttonRef={chipRef} onOpen={() => setScoreOpen(true)} />
       </header>
 
-      <div className="workspace">
+      <div className="workspace" inert={scoreOpen || undefined}>
         <div className="stage" onPointerDownCapture={() => setHint(false)}>
           <BodyCanvas
             selected={selected}
@@ -602,7 +606,7 @@ function Sheet({
 
   useEffect(() => {
     if (!height || !peek) return
-    onMetrics(peek + SHEET_GAP, height + SHEET_GAP)
+    onMetrics(peek + SHEET_GAP, Math.min(height, maxHeight()) + SHEET_GAP)
   }, [height, peek, onMetrics])
 
   const maxHeight = () => {
@@ -638,7 +642,11 @@ function Sheet({
     state.lastT = now
     const delta = state.y - event.clientY
     if (Math.abs(delta) > 5) state.moved = true
-    setH(Math.min(maxHeight(), Math.max(peekRef.current, state.h + delta)))
+    const raw = state.h + delta
+    const max = maxHeight()
+    // за верхним пределом шторка «упирается» с сопротивлением, а не обрывается
+    const next = raw > max ? max + Math.min(36, (raw - max) * 0.28) : raw
+    setH(Math.max(peekRef.current, next))
   }
 
   const onUp = () => {
@@ -679,6 +687,16 @@ function Sheet({
             aria-expanded={grown}
             aria-label={grown ? `${label}: свернуть шторку` : `${label}: потяните шторку вверх`}
             onKeyDown={(event) => {
+              if (event.key === 'ArrowUp') {
+                event.preventDefault()
+                setH(maxHeight())
+                return
+              }
+              if (event.key === 'ArrowDown') {
+                event.preventDefault()
+                setH(peekRef.current)
+                return
+              }
               if (event.key !== 'Enter' && event.key !== ' ') return
               event.preventDefault()
               setH(grown ? peekRef.current : maxHeight())
@@ -715,7 +733,7 @@ function ResetIcon() {
 }
 
 function useWide() {
-  const query = '(min-width: 960px)'
+  const query = '(min-width: 960px), (orientation: landscape) and (min-width: 640px) and (max-height: 520px)'
   const [wide, setWide] = useState(() => window.matchMedia(query).matches)
   useEffect(() => {
     const media = window.matchMedia(query)

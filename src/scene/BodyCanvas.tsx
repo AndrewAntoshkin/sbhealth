@@ -405,6 +405,8 @@ function buildParts(root: THREE.Object3D): { parts: Part[]; feet: number } {
     if (!mesh.isMesh) return
     const id = mesh.name.split('__')[0] as SystemId
     if (!known.has(id)) return
+    // Семявыносящие протоки в исходной модели — плоские лоскуты и рисуются как «клинья»; на органы они не влияют.
+    if (mesh.name.includes('vas_deferens')) return
     const geometry = mesh.geometry.clone()
     geometry.applyMatrix4(mesh.matrixWorld)
     geometry.computeVertexNormals()

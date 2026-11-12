@@ -45,7 +45,7 @@ export const MESH_COLOR: Record<RiskLevel, string> = {
 export const RISK_INK: Record<RiskLevel, string> = {
   low: '#0E7A28',
   watch: '#8A5A00',
-  elevated: '#C2510C',
+  elevated: '#B04508',
   high: '#C41428',
 }
 
