@@ -8,7 +8,7 @@ import { TopActions } from '../TopActions'
 import { DURATION, MODE_LABEL, nextAppointment, useCore, type Appointment } from '../store'
 import { cap, fmtDay, fmtDayLong, fmtTime, inDays } from '../time'
 import { MESH_COLOR, RISK_SOFT, levelOf, systemById, type SystemId } from '../data/systems'
-import { INDEX, ORDER, ORGAN_TITLE, RiskTag, TONE, thumb } from '../shared'
+import { INDEX, ORDER, ORGAN_TITLE, RiskTag, thumb } from '../shared'
 import { Dock, type DockTab } from './Dock'
 
 const HERO = `${import.meta.env.BASE_URL}hero.webp`
@@ -89,7 +89,6 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
                 <b>{INDEX}</b>
                 <span>/100</span>
               </p>
-              <p className="hm-tone">{TONE}</p>
               <div className="hm-hero-actions">
                 <button className="hm-open" type="button" onClick={() => onAtlas()}>
                   Открыть атлас

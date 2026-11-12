@@ -225,7 +225,7 @@
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  min-height: 330px;
+  min-height: 280px;
   padding: 24px 22px 22px;
   border-radius: 32px;
   color: #fff;
@@ -251,7 +251,7 @@
   position: relative;
   display: flex;
   flex-direction: column;
-  min-height: 282px;
+  min-height: 232px;
 }
 
 .hm-hero p { margin: 0; }
@@ -260,7 +260,7 @@
 .hm-index { display: flex; align-items: baseline; gap: 6px; margin-top: 8px !important; }
 
 .hm-index b {
-  font-size: 104px;
+  font-size: 72px;
   font-weight: 250;
   letter-spacing: -0.075em;
   line-height: 0.86;
@@ -601,6 +601,6 @@
 }
 
 @media (max-width: 380px) {
-  .hm-index b { font-size: 92px; }
+  .hm-index b { font-size: 64px; }
   .tile.is-wide > img { width: 104px; height: 104px; }
 }
