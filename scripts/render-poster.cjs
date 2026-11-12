@@ -12,7 +12,7 @@ const OUT = path.join(__dirname, '..', 'public', 'poster.webp')
 
 ;(async () => {
   const browser = await chromium.launch({ channel: 'chrome', args: ['--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--ignore-gpu-blocklist'] })
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true })
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 1.5, hasTouch: true })
   const page = await ctx.newPage()
   const work = await ctx.newPage()
   await page.goto(URL)
@@ -30,7 +30,7 @@ const OUT = path.join(__dirname, '..', 'public', 'poster.webp')
     await new Promise((res) => { img.onload = res; img.src = 'data:image/png;base64,' + b64 })
     const c = document.createElement('canvas'); c.width = img.width; c.height = img.height
     c.getContext('2d').drawImage(img, 0, 0)
-    return c.toDataURL('image/webp', 0.86).split(',')[1]
+    return c.toDataURL('image/webp', 0.8).split(',')[1]
   }, png.toString('base64'))
   fs.writeFileSync(OUT, Buffer.from(webp, 'base64'))
   console.log('poster.webp', fs.statSync(OUT).size, 'байт')
