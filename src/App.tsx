@@ -1,4 +1,12 @@
-import { useEffect, useRef, useState, type PointerEvent as ReactPointerEvent } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type PointerEvent as ReactPointerEvent,
+  type ReactNode,
+} from 'react'
 import { BodyCanvas } from './scene/BodyCanvas'
 import {
   MESH_COLOR,
@@ -20,7 +28,7 @@ const ORGAN_TITLE: Record<SystemId, string> = {
   nervous: 'Головной мозг',
   endocrine: 'Поджелудочная',
   musculoskeletal: 'Позвоночник',
-  digestive: 'Печень',
+  digestive: 'Пищеварение',
   hematopoietic: 'Костный мозг',
   integumentary: 'Кожа',
   lymphatic: 'Селезёнка',
@@ -35,24 +43,25 @@ const ORDER = systemsByRisk()
 const INDEX = healthIndex()
 const TONE = indexTone(INDEX)
 const LEVELS: RiskLevel[] = ['low', 'watch', 'elevated', 'high']
+const TOP = ORDER.slice(0, 3).map((item) => item.name.toLowerCase())
+const TOP_TEXT = `Выше остальных ${TOP[0]}, ${TOP[1]} и ${TOP[2]}. Цвет на модели — это риск, не диагноз.`
 
 export function App() {
   const [selected, setSelected] = useState<SystemId | null>(null)
-  const [open, setOpen] = useState(false)
-  const [asked, setAsked] = useState(false)
   const [resetSignal, setResetSignal] = useState(0)
+  const [peek, setPeek] = useState(0)
+  const [inset, setInset] = useState(0)
   const wide = useWide()
   const system = selected ? systemById(selected) : null
   const level = system ? levelOf(system.risk) : null
-  const phoneFocus = Boolean(system && level && !wide)
-  const expanded = wide || open
+
+  const onMetrics = useCallback((covered: number, height: number) => {
+    setPeek(covered)
+    setInset(height)
+  }, [])
 
   useEffect(() => {
-    setAsked(false)
-    if (!selected) {
-      setOpen(false)
-      return
-    }
+    if (!selected) return
     const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     document.getElementById(`chip-${selected}`)?.scrollIntoView({
       inline: 'center',
@@ -77,8 +86,6 @@ export function App() {
     return () => window.removeEventListener('keydown', onKey)
   }, [selected])
 
-  const top = ORDER.slice(0, 3).map((item) => item.name.toLowerCase())
-
   return (
     <div className="app">
       <header className="top">
@@ -94,34 +101,82 @@ export function App() {
       </header>
 
       <div className="workspace">
-        <div className={phoneFocus ? 'stage is-focus' : 'stage'}>
+        <div className="stage">
           <BodyCanvas
             selected={selected}
             resetSignal={resetSignal}
-            low={!wide}
+            peek={wide ? 0 : peek}
+            inset={wide ? 0 : inset}
             onSelect={(id) => setSelected(id)}
           />
-          {phoneFocus && system && level && (
-            <div className="focus-ui">
-              <button
-                className="back"
-                type="button"
-                aria-label="Ко всему телу"
-                onClick={() => setSelected(null)}
-              >
-                <BackIcon />
-              </button>
-              {system.metrics.slice(0, 2).map((metric, index) => (
-                <div className={index === 0 ? 'float-pill is-a' : 'float-pill is-b'} key={metric.label}>
-                  <i style={{ background: MESH_COLOR[level] }} />
-                  <b>{metric.value}</b>
-                  <span>{metric.label}</span>
-                </div>
-              ))}
-              <OrganSheet system={system} level={level} onBack={() => setSelected(null)} />
+
+          {!wide && (
+            <div className="phone-ui">
+              {system && level ? (
+                <>
+                  <button className="round at-left" type="button" aria-label="Ко всему телу" onClick={() => setSelected(null)}>
+                    <BackIcon />
+                  </button>
+                  {system.metrics.slice(0, 2).map((metric, index) => (
+                    <div className={index === 0 ? 'float-pill is-a' : 'float-pill is-b'} key={metric.label}>
+                      <i style={{ background: MESH_COLOR[level] }} />
+                      <b>{metric.value}</b>
+                      <span>{metric.label}</span>
+                    </div>
+                  ))}
+                  <Sheet
+                    key={system.id}
+                    label={ORGAN_TITLE[system.id]}
+                    onMetrics={onMetrics}
+                    grab={
+                      <>
+                        <div className="sheet-head">
+                          <strong>{ORGAN_TITLE[system.id]}</strong>
+                          <span className="risk-tag" style={{ background: RISK_SOFT[level], color: RISK_INK[level] }}>
+                            {RISK_LABEL[level]} · {system.risk}
+                          </span>
+                        </div>
+                        <p>{system.summary}</p>
+                      </>
+                    }
+                  >
+                    <OrganDetail system={system} level={level} backLabel="Ко всему телу" onBack={() => setSelected(null)} />
+                    <Fine />
+                  </Sheet>
+                </>
+              ) : (
+                <>
+                  <button
+                    className="round at-right"
+                    type="button"
+                    aria-label="Вернуть общий ракурс"
+                    onClick={() => setResetSignal((value) => value + 1)}
+                  >
+                    <ResetIcon />
+                  </button>
+                  <Sheet
+                    key="overview"
+                    label="Системы и риск"
+                    onMetrics={onMetrics}
+                    grab={
+                      <>
+                        <p className="card-kicker">Куда смотреть сначала</p>
+                        <strong>Три зоны внимания</strong>
+                        <p>{TOP_TEXT}</p>
+                      </>
+                    }
+                  >
+                    <Legend />
+                    <h3 className="block-title">Все системы</h3>
+                    <OverviewList onSelect={setSelected} />
+                    <Fine />
+                  </Sheet>
+                </>
+              )}
             </div>
           )}
-          {!selected && (
+
+          {wide && !selected && (
             <button
               className="reset"
               type="button"
@@ -133,153 +188,189 @@ export function App() {
           )}
         </div>
 
-        <section className={expanded ? 'panel is-open' : 'panel'} aria-label="Системы и риск">
-          <button
-            className="handle"
-            type="button"
-            aria-expanded={expanded}
-            aria-label={expanded ? 'Свернуть подробности' : 'Показать подробности'}
-            onClick={() => setOpen((value) => !value)}
-          >
-            <i />
-          </button>
-
-          <div className="legend" aria-hidden="true">
-            {LEVELS.map((item) => (
-              <span key={item}>
-                <i style={{ background: MESH_COLOR[item] }} />
-                {RISK_LABEL[item]}
-              </span>
-            ))}
-          </div>
-
-          {system && (
-            <div className="rail" role="group" aria-label="Системы">
-              {ORDER.map((item) => {
-                const itemLevel = levelOf(item.risk)
-                const on = item.id === selected
-                return (
-                  <button
-                    key={item.id}
-                    id={`chip-${item.id}`}
-                    type="button"
-                    className={on ? 'chip is-on' : 'chip'}
-                    aria-pressed={on}
-                    style={{
-                      ['--chip-color' as string]: MESH_COLOR[itemLevel],
-                      background: on ? RISK_SOFT[itemLevel] : undefined,
-                    }}
-                    onClick={() => setSelected(on ? null : item.id)}
-                  >
-                    <i style={{ background: MESH_COLOR[itemLevel] }} />
-                    {item.short}
-                  </button>
-                )
-              })}
+        {wide && (
+          <section className="panel" aria-label="Системы и риск">
+            <div className="panel-legend">
+              <Legend />
             </div>
-          )}
 
-          <div className="scroll">
-            {system && level ? (
-              <>
-                <h2>{system.name}</h2>
-                <p className="covers">{system.covers}</p>
-                <div className="stats">
-                  <div className="stat" style={{ background: RISK_SOFT[level] }}>
-                    <span>Риск</span>
-                    <b style={{ color: RISK_INK[level] }}>{RISK_LABEL[level]}</b>
-                  </div>
-                  <div className="stat">
-                    <span>Балл из 100</span>
-                    <b style={{ color: RISK_INK[level] }}>{system.risk}</b>
-                  </div>
-                </div>
-                <article className="card">
-                  <p>{system.summary}</p>
-                  {expanded && <p className="meaning">{system.meaning}</p>}
-                </article>
-                {expanded && (
-                  <>
-                    <article className="card">
-                      <h3>Показатели · демо</h3>
-                      {system.metrics.map((metric) => (
-                        <div className="metric" key={metric.label}>
-                          <span>{metric.label}</span>
-                          <b>{metric.value}</b>
-                          <small>{metric.hint}</small>
-                        </div>
-                      ))}
-                    </article>
-                    <article className="card">
-                      <h3>Что с этим делать</h3>
-                      <p>{system.advice}</p>
-                    </article>
-                    {asked ? (
-                      <article className="card">
-                        <p>Это демо: запись не создаётся. В продукте здесь открылась бы консультация терапевта.</p>
-                        <button className="text-btn" type="button" onClick={() => setAsked(false)}>
-                          Понятно
-                        </button>
-                      </article>
-                    ) : (
-                      <button className="primary" type="button" onClick={() => setAsked(true)}>
-                        Обсудить с терапевтом
-                      </button>
-                    )}
-                    <button className="text-btn" type="button" onClick={() => setSelected(null)}>
-                      Все системы
+            {system && (
+              <div className="rail" role="group" aria-label="Системы">
+                {ORDER.map((item) => {
+                  const itemLevel = levelOf(item.risk)
+                  const on = item.id === selected
+                  return (
+                    <button
+                      key={item.id}
+                      id={`chip-${item.id}`}
+                      type="button"
+                      className={on ? 'chip is-on' : 'chip'}
+                      aria-pressed={on}
+                      style={{
+                        ['--chip-color' as string]: MESH_COLOR[itemLevel],
+                        background: on ? RISK_SOFT[itemLevel] : undefined,
+                      }}
+                      onClick={() => setSelected(on ? null : item.id)}
+                    >
+                      <i style={{ background: MESH_COLOR[itemLevel] }} />
+                      {item.short}
                     </button>
-                  </>
-                )}
-              </>
-            ) : (
-              <>
-                <article className="card spotlight">
-                  <p className="card-kicker">Куда смотреть сначала</p>
-                  <h2>Три зоны внимания</h2>
-                  <p>{`Выше остальных ${top[0]}, ${top[1]} и ${top[2]}. Цвет на модели — это риск, не диагноз.`}</p>
-                </article>
-                <h3 className="block-title">Все системы</h3>
-                <ul className="overview-list">
-                  {ORDER.map((item) => {
-                    const itemLevel = levelOf(item.risk)
-                    return (
-                      <li key={item.id}>
-                        <button type="button" onClick={() => setSelected(item.id)}>
-                          <span className="swatch" style={{ background: RISK_SOFT[itemLevel] }}>
-                            <i style={{ background: MESH_COLOR[itemLevel] }} />
-                          </span>
-                          <span className="copy">
-                            <span className="name">{item.name}</span>
-                            <span className="sub">{item.covers}</span>
-                          </span>
-                          <span className="risk-word" style={{ color: RISK_INK[itemLevel] }}>
-                            {RISK_LABEL[itemLevel]}
-                            <small>{item.risk}</small>
-                          </span>
-                        </button>
-                      </li>
-                    )
-                  })}
-                </ul>
-              </>
+                  )
+                })}
+              </div>
             )}
-            <p className="fine">
-              Демо-данные для интерфейса, не медицинское заключение. Модель: Human Reference Atlas, мужской
-              референс v1.10,{' '}
-              <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
-                CC BY 4.0
-              </a>
-              . Упрощена для телефона.{' '}
-              <a href="https://humanatlas.io/3d-reference-library" target="_blank" rel="noreferrer">
-                Источник
-              </a>
-              .
-            </p>
-          </div>
-        </section>
+
+            <div className="scroll">
+              {system && level ? (
+                <>
+                  <h2>{system.name}</h2>
+                  <p className="covers">{system.covers}</p>
+                  <OrganDetail
+                    key={system.id}
+                    system={system}
+                    level={level}
+                    backLabel="Все системы"
+                    onBack={() => setSelected(null)}
+                    withSummary
+                  />
+                </>
+              ) : (
+                <>
+                  <article className="card spotlight">
+                    <p className="card-kicker">Куда смотреть сначала</p>
+                    <h2>Три зоны внимания</h2>
+                    <p>{TOP_TEXT}</p>
+                  </article>
+                  <h3 className="block-title">Все системы</h3>
+                  <OverviewList onSelect={setSelected} />
+                </>
+              )}
+              <Fine />
+            </div>
+          </section>
+        )}
       </div>
     </div>
+  )
+}
+
+function Legend() {
+  return (
+    <div className="legend" aria-hidden="true">
+      {LEVELS.map((item) => (
+        <span key={item}>
+          <i style={{ background: MESH_COLOR[item] }} />
+          {RISK_LABEL[item]}
+        </span>
+      ))}
+    </div>
+  )
+}
+
+function OverviewList({ onSelect }: { onSelect: (id: SystemId) => void }) {
+  return (
+    <ul className="overview-list">
+      {ORDER.map((item) => {
+        const itemLevel = levelOf(item.risk)
+        return (
+          <li key={item.id}>
+            <button type="button" onClick={() => onSelect(item.id)}>
+              <span className="swatch" style={{ background: RISK_SOFT[itemLevel] }}>
+                <i style={{ background: MESH_COLOR[itemLevel] }} />
+              </span>
+              <span className="copy">
+                <span className="name">{item.name}</span>
+                <span className="sub">{item.covers}</span>
+              </span>
+              <span className="risk-word" style={{ color: RISK_INK[itemLevel] }}>
+                {RISK_LABEL[itemLevel]}
+                <small>{item.risk}</small>
+              </span>
+            </button>
+          </li>
+        )
+      })}
+    </ul>
+  )
+}
+
+function OrganDetail({
+  system,
+  level,
+  backLabel,
+  onBack,
+  withSummary = false,
+}: {
+  system: BodySystem
+  level: RiskLevel
+  backLabel: string
+  onBack: () => void
+  withSummary?: boolean
+}) {
+  const [asked, setAsked] = useState(false)
+  return (
+    <>
+      <div className="stats">
+        <div className="stat" style={{ background: RISK_SOFT[level] }}>
+          <span>Риск</span>
+          <b style={{ color: RISK_INK[level] }}>{RISK_LABEL[level]}</b>
+        </div>
+        <div className="stat">
+          <span>Балл из 100</span>
+          <b style={{ color: RISK_INK[level] }}>{system.risk}</b>
+        </div>
+      </div>
+      <article className="card">
+        {withSummary && <p>{system.summary}</p>}
+        <p className={withSummary ? 'meaning' : undefined}>{system.meaning}</p>
+      </article>
+      <article className="card">
+        <h3>Показатели · демо</h3>
+        {system.metrics.map((metric) => (
+          <div className="metric" key={metric.label}>
+            <span>{metric.label}</span>
+            <b>{metric.value}</b>
+            <small>{metric.hint}</small>
+          </div>
+        ))}
+      </article>
+      <article className="card">
+        <h3>Что с этим делать</h3>
+        <p>{system.advice}</p>
+      </article>
+      {asked ? (
+        <article className="card">
+          <p>Это демо: запись не создаётся. В продукте здесь открылась бы консультация терапевта.</p>
+          <button className="text-btn" type="button" onClick={() => setAsked(false)}>
+            Понятно
+          </button>
+        </article>
+      ) : (
+        <button className="primary" type="button" onClick={() => setAsked(true)}>
+          Обсудить с терапевтом
+        </button>
+      )}
+      <button className="text-btn" type="button" onClick={onBack}>
+        {backLabel}
+      </button>
+    </>
+  )
+}
+
+function Fine() {
+  return (
+    <p className="fine">
+      Демо-данные для интерфейса, не медицинское заключение. Модель: Human Reference Atlas, мужской
+      референс v1.10,{' '}
+      <a href="https://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noreferrer">
+        CC BY 4.0
+      </a>
+      . Упрощена для телефона.{' '}
+      <a href="https://humanatlas.io/3d-reference-library" target="_blank" rel="noreferrer">
+        Источник
+      </a>
+      .
+    </p>
   )
 }
 
@@ -304,84 +395,117 @@ function Mark() {
   )
 }
 
-const PEEK = 176
+const SHEET_GAP = 12
 
-function OrganSheet({
-  system,
-  level,
-  onBack,
+function Sheet({
+  grab,
+  children,
+  label,
+  onMetrics,
 }: {
-  system: BodySystem
-  level: RiskLevel
-  onBack: () => void
+  grab: ReactNode
+  children: ReactNode
+  label: string
+  onMetrics: (covered: number, height: number) => void
 }) {
-  const [asked, setAsked] = useState(false)
-  const [peek, setPeek] = useState(PEEK)
-  const [height, setHeight] = useState(PEEK)
+  const [height, setHeight] = useState(0)
+  const [peek, setPeek] = useState(0)
   const [dragging, setDragging] = useState(false)
-  const heightRef = useRef(PEEK)
-  const peekRef = useRef(PEEK)
-  const drag = useRef<{ y: number; h: number; moved: boolean } | null>(null)
+  const heightRef = useRef(0)
+  const peekRef = useRef(0)
+  const drag = useRef<{ y: number; h: number; moved: boolean; lastY: number; lastT: number; v: number } | null>(null)
   const sheetRef = useRef<HTMLElement>(null)
+  const grabRef = useRef<HTMLDivElement>(null)
 
   const setH = (value: number) => {
     heightRef.current = value
     setHeight(value)
   }
 
-  const maxHeight = () => {
-    const stage = sheetRef.current?.parentElement?.clientHeight ?? window.innerHeight
-    return Math.max(peekRef.current + 120, Math.round(stage * 0.74))
-  }
+  useLayoutEffect(() => {
+    const el = grabRef.current
+    if (!el) return
+    const measure = () => {
+      const next = Math.ceil(el.getBoundingClientRect().height)
+      if (!next) return
+      const collapsed = heightRef.current === 0 || heightRef.current <= peekRef.current + 1
+      peekRef.current = next
+      setPeek(next)
+      if (collapsed) setH(next)
+    }
+    measure()
+    const observer = new ResizeObserver(measure)
+    observer.observe(el)
+    return () => observer.disconnect()
+  }, [])
 
   useEffect(() => {
-    setAsked(false)
-    const grab = sheetRef.current?.querySelector('.sheet-grab')
-    const next = Math.ceil((grab?.getBoundingClientRect().height ?? PEEK) + 2)
-    peekRef.current = next
-    setPeek(next)
-    setH(next)
-  }, [system.id])
+    if (!height || !peek) return
+    onMetrics(peek + SHEET_GAP, height + SHEET_GAP)
+  }, [height, peek, onMetrics])
+
+  const maxHeight = () => {
+    const stage = sheetRef.current?.parentElement?.clientHeight ?? window.innerHeight
+    return Math.max(peekRef.current + 160, Math.round(stage * 0.78))
+  }
 
   const onDown = (event: ReactPointerEvent<HTMLDivElement>) => {
     if (event.pointerType === 'mouse' && event.button !== 0) return
-    drag.current = { y: event.clientY, h: heightRef.current, moved: false }
+    drag.current = {
+      y: event.clientY,
+      h: heightRef.current,
+      moved: false,
+      lastY: event.clientY,
+      lastT: performance.now(),
+      v: 0,
+    }
     setDragging(true)
-    event.currentTarget.setPointerCapture(event.pointerId)
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId)
+    } catch {
+      /* указатель уже отпущен */
+    }
   }
 
   const onMove = (event: ReactPointerEvent<HTMLDivElement>) => {
-    if (!drag.current) return
-    const delta = drag.current.y - event.clientY
-    if (Math.abs(delta) > 5) drag.current.moved = true
-    setH(Math.min(maxHeight(), Math.max(peekRef.current, drag.current.h + delta)))
+    const state = drag.current
+    if (!state) return
+    const now = performance.now()
+    const dt = Math.max(now - state.lastT, 1)
+    state.v = (state.lastY - event.clientY) / dt
+    state.lastY = event.clientY
+    state.lastT = now
+    const delta = state.y - event.clientY
+    if (Math.abs(delta) > 5) state.moved = true
+    setH(Math.min(maxHeight(), Math.max(peekRef.current, state.h + delta)))
   }
 
   const onUp = () => {
-    if (!drag.current) return
-    const moved = drag.current.moved
+    const state = drag.current
+    if (!state) return
     drag.current = null
     setDragging(false)
     const floor = peekRef.current
     const max = maxHeight()
     const current = heightRef.current
-    if (!moved) {
+    if (!state.moved) {
       setH(current > floor + 24 ? floor : max)
+      return
+    }
+    if (Math.abs(state.v) > 0.45) {
+      setH(state.v > 0 ? max : floor)
       return
     }
     setH(current > (floor + max) / 2 ? max : floor)
   }
 
   const grown = height > peek + 28
+  const className = ['sheet', grown && 'is-grown', dragging && 'is-dragging'].filter(Boolean).join(' ')
 
   return (
-    <section
-      ref={sheetRef}
-      className={dragging ? 'sheet is-dragging' : grown ? 'sheet is-grown' : 'sheet'}
-      style={{ height }}
-      aria-label={ORGAN_TITLE[system.id]}
-    >
+    <section ref={sheetRef} className={className} style={height ? { height } : undefined} aria-label={label}>
       <div
+        ref={grabRef}
         className="sheet-grab"
         onPointerDown={onDown}
         onPointerMove={onMove}
@@ -390,7 +514,7 @@ function OrganSheet({
         role="button"
         tabIndex={0}
         aria-expanded={grown}
-        aria-label={grown ? 'Свернуть шторку' : 'Потяните шторку вверх'}
+        aria-label={grown ? `${label}: свернуть шторку` : `${label}: потяните шторку вверх`}
         onKeyDown={(event) => {
           if (event.key !== 'Enter' && event.key !== ' ') return
           event.preventDefault()
@@ -398,53 +522,9 @@ function OrganSheet({
         }}
       >
         <i />
-        <strong>{ORGAN_TITLE[system.id]}</strong>
-        <p>{system.summary}</p>
+        {grab}
       </div>
-      <div className="sheet-body">
-        <div className="stats">
-          <div className="stat" style={{ background: RISK_SOFT[level] }}>
-            <span>Риск</span>
-            <b style={{ color: RISK_INK[level] }}>{RISK_LABEL[level]}</b>
-          </div>
-          <div className="stat">
-            <span>Балл из 100</span>
-            <b style={{ color: RISK_INK[level] }}>{system.risk}</b>
-          </div>
-        </div>
-        <article className="card">
-          <p>{system.meaning}</p>
-        </article>
-        <article className="card">
-          <h3>Показатели · демо</h3>
-          {system.metrics.map((metric) => (
-            <div className="metric" key={metric.label}>
-              <span>{metric.label}</span>
-              <b>{metric.value}</b>
-              <small>{metric.hint}</small>
-            </div>
-          ))}
-        </article>
-        <article className="card">
-          <h3>Что с этим делать</h3>
-          <p>{system.advice}</p>
-        </article>
-        {asked ? (
-          <article className="card">
-            <p>Это демо: запись не создаётся. В продукте здесь открылась бы консультация терапевта.</p>
-            <button className="text-btn" type="button" onClick={() => setAsked(false)}>
-              Понятно
-            </button>
-          </article>
-        ) : (
-          <button className="primary" type="button" onClick={() => setAsked(true)}>
-            Обсудить с терапевтом
-          </button>
-        )}
-        <button className="text-btn" type="button" onClick={onBack}>
-          Ко всему телу
-        </button>
-      </div>
+      <div className="sheet-body">{children}</div>
     </section>
   )
 }

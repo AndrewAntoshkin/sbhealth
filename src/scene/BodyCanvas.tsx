@@ -23,11 +23,23 @@ interface Part {
 interface Props {
   selected: SystemId | null
   resetSignal: number
-  low: boolean
+  /** Высота (px), которую шторка закрывает в свёрнутом виде. 0 — шторки нет. */
+  peek: number
+  /** Сколько px снизу сейчас закрыто шторкой. */
+  inset: number
   onSelect: (id: SystemId | null) => void
 }
 
-export function BodyCanvas({ selected, resetSignal, low, onSelect }: Props) {
+const TAN_HALF_FOV = Math.tan((28 * Math.PI) / 360)
+const BODY_HEIGHT = 1.86
+
+function homeDistance(stageHeight: number, peek: number) {
+  const visible = stageHeight > 0 ? Math.max(0.35, 1 - peek / stageHeight) : 1
+  const view = BODY_HEIGHT / (0.9 * visible)
+  return THREE.MathUtils.clamp(view / (2 * TAN_HALF_FOV), 3.9, 7)
+}
+
+export function BodyCanvas({ selected, resetSignal, peek, inset, onSelect }: Props) {
   return (
     <>
       <Canvas
@@ -41,7 +53,7 @@ export function BodyCanvas({ selected, resetSignal, low, onSelect }: Props) {
         }}
       >
         <Suspense fallback={null}>
-          <Scene selected={selected} resetSignal={resetSignal} low={low} onSelect={onSelect} />
+          <Scene selected={selected} resetSignal={resetSignal} peek={peek} inset={inset} onSelect={onSelect} />
         </Suspense>
       </Canvas>
       <Loader />
@@ -62,42 +74,57 @@ function Loader() {
 }
 
 function heroBox(root: THREE.Object3D, systemId: SystemId) {
-  const scored: { box: THREE.Box3; center: THREE.Vector3; score: number }[] = []
+  const items: { box: THREE.Box3; center: THREE.Vector3; tris: number }[] = []
   root.traverse((obj) => {
     const mesh = obj as THREE.Mesh
     if (!mesh.isMesh || mesh.userData.system !== systemId) return
     const box = new THREE.Box3().setFromObject(mesh)
     if (box.isEmpty()) return
-    const size = box.getSize(new THREE.Vector3())
-    const minSide = Math.max(Math.min(size.x, size.y, size.z), 1e-4)
-    const volume = size.x * size.y * size.z
-    scored.push({
-      box,
-      center: box.getCenter(new THREE.Vector3()),
-      score: volume / (Math.max(size.x, size.y, size.z) / minSide),
-    })
+    const geometry = mesh.geometry
+    const tris = (geometry.index ? geometry.index.count : geometry.getAttribute('position').count) / 3
+    items.push({ box, center: box.getCenter(new THREE.Vector3()), tris })
   })
-  scored.sort((a, b) => b.score - a.score)
-  if (!scored.length) return new THREE.Box3()
-  const box = scored[0].box.clone()
-  const sizeOf = (target: THREE.Box3) => target.getSize(new THREE.Vector3()).length()
-  const origin = scored[0].center
-  const reach = Math.max(sizeOf(box) * 0.85, 0.05)
-  for (const item of scored.slice(1)) {
-    if (item.center.distanceTo(origin) > reach) continue
-    const next = box.clone().union(item.box)
-    if (sizeOf(next) > sizeOf(box) * 1.35) continue
-    box.union(item.box)
+  if (!items.length) return { box: new THREE.Box3(), focus: new THREE.Vector3() }
+
+  // Самые детальные меши — это то, что человек видит как «сам орган»;
+  // длинные гладкие сосуды и оболочки не должны уводить камеру.
+  const seed = items.reduce((best, item) => (item.tris > best.tris ? item : best))
+  const cluster = items.filter((item) => item.center.distanceTo(seed.center) <= 0.2)
+  const focus = new THREE.Vector3()
+  let mass = 0
+  for (const item of cluster) {
+    focus.addScaledVector(item.center, item.tris)
+    mass += item.tris
   }
-  return box
+  const box = seed.box.clone()
+  for (const item of items) {
+    if (item.tris >= seed.tris * 0.06 && item.center.distanceTo(seed.center) <= 0.26) box.union(item.box)
+  }
+  return { box, focus: focus.divideScalar(mass) }
 }
 
-function Scene({ selected, resetSignal, low, onSelect }: Props) {
+function goHome(rig: CameraControlsImpl, stageHeight: number, peek: number, animate: boolean) {
+  const distance = homeDistance(stageHeight, peek)
+  const direction = HOME_POS.clone().sub(HOME_TARGET).normalize()
+  const position = HOME_TARGET.clone().addScaledVector(direction, distance)
+  void rig.setLookAt(position.x, position.y, position.z, HOME_TARGET.x, HOME_TARGET.y, HOME_TARGET.z, animate)
+}
+
+function Scene({ selected, resetSignal, peek, inset, onSelect }: Props) {
   const gltf = useGLTF(MODEL_URL)
   const group = useRef<THREE.Group>(null)
   const controls = useRef<CameraControlsImpl>(null)
   const spin = useRef(!window.matchMedia('(prefers-reduced-motion: reduce)').matches)
+  const sway = useRef(0)
   const framed = useRef(false)
+  const homed = useRef(false)
+  const lastSelected = useRef<SystemId | null>(null)
+  const camera = useThree((state) => state.camera as THREE.PerspectiveCamera)
+  const size = useThree((state) => state.size)
+  const insetTarget = useRef(0)
+  const insetNow = useRef<number | null>(null)
+  const insetApplied = useRef({ value: -1, width: 0, height: 0 })
+  insetTarget.current = Math.min(inset, peek + size.height * 0.08)
   const selectedRef = useRef(selected)
   const hovered = useRef<SystemId | null>(null)
   const onSelectRef = useRef(onSelect)
@@ -141,34 +168,38 @@ function Scene({ selected, resetSignal, low, onSelect }: Props) {
     const root = group.current
     if (!rig || !root) return
     if (!selected) {
-      if (!framed.current) return
+      const wasFramed = framed.current
       framed.current = false
-      spin.current = false
-      root.rotation.y = DEFAULT_YAW
-      void rig.setLookAt(HOME_POS.x, HOME_POS.y, HOME_POS.z, HOME_TARGET.x, HOME_TARGET.y, HOME_TARGET.z, true)
+      lastSelected.current = null
+      if (wasFramed) {
+        spin.current = false
+        root.rotation.y = DEFAULT_YAW
+      }
+      goHome(rig, size.height, peek, wasFramed || homed.current)
+      homed.current = true
       return
     }
+    if (framed.current && lastSelected.current === selected) return
     framed.current = true
+    lastSelected.current = selected
     spin.current = false
     root.rotation.y = DEFAULT_YAW
     root.updateMatrixWorld(true)
-    const box = heroBox(root, selected)
+    const { box, focus } = heroBox(root, selected)
     if (box.isEmpty()) return
-    const center = box.getCenter(new THREE.Vector3())
-    const size = box.getSize(new THREE.Vector3())
-    if (low && size.y > Math.max(size.x, size.z) * 1.25) center.y += size.y * 0.3
+    const center = focus
     const radius = box.getBoundingSphere(new THREE.Sphere()).radius
-    const distance = THREE.MathUtils.clamp(radius * 3.6, selected === 'integumentary' ? 3.4 : 0.32, selected === 'integumentary' ? 4.4 : 1.15)
+    const boxSize = box.getSize(new THREE.Vector3())
+    const aspect = size.width / Math.max(size.height, 1)
+    const fitWidth = (Math.max(boxSize.x, boxSize.z) * 0.5 * 1.15) / (TAN_HALF_FOV * aspect)
+    const distance =
+      selected === 'integumentary'
+        ? homeDistance(size.height, peek)
+        : THREE.MathUtils.clamp(Math.max(radius * 3.2, fitWidth), 0.32, 1.8)
     const offset = new THREE.Vector3(0.28, 0.16, 1).normalize().multiplyScalar(distance)
     const position = center.clone().add(offset)
-    if (low && selected !== 'integumentary') {
-      const viewHeight = 2 * Math.tan((28 * Math.PI) / 360) * distance
-      const tuck = viewHeight * 0.28
-      center.y += tuck
-      position.y += tuck
-    }
     void rig.setLookAt(position.x, position.y, position.z, center.x, center.y, center.z, true)
-  }, [selected, low])
+  }, [selected, peek, size.height])
 
   useEffect(() => {
     if (resetSignal === 0) return
@@ -177,12 +208,27 @@ function Scene({ selected, resetSignal, low, onSelect }: Props) {
     if (!rig || !root) return
     spin.current = false
     root.rotation.y = DEFAULT_YAW
-    void rig.setLookAt(HOME_POS.x, HOME_POS.y, HOME_POS.z, HOME_TARGET.x, HOME_TARGET.y, HOME_TARGET.z, true)
+    goHome(rig, size.height, peek, true)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resetSignal])
 
   useFrame(({ clock }, delta) => {
     if (spin.current && group.current && !selectedRef.current) {
-      group.current.rotation.y += delta * 0.22
+      sway.current += delta
+      group.current.rotation.y = DEFAULT_YAW + Math.sin(sway.current * 0.5) * 0.55
+    }
+
+    if (insetNow.current === null) insetNow.current = insetTarget.current
+    const gap = insetTarget.current - insetNow.current
+    insetNow.current = Math.abs(gap) < 0.3 ? insetTarget.current : insetNow.current + gap * (1 - Math.exp(-delta * 9))
+    const value = Math.round(insetNow.current * 2) / 2
+    const applied = insetApplied.current
+    if (value !== applied.value || size.width !== applied.width || size.height !== applied.height) {
+      applied.value = value
+      applied.width = size.width
+      applied.height = size.height
+      if (value < 0.5) camera.clearViewOffset()
+      else camera.setViewOffset(size.width, size.height, 0, value / 2, size.width, size.height)
     }
     const pulse = 0.08 * (0.5 + 0.5 * Math.sin(clock.elapsedTime * 2.4))
     const current = selectedRef.current
@@ -234,7 +280,7 @@ function Scene({ selected, resetSignal, low, onSelect }: Props) {
           )
         })}
       </group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, built.feet + 0.012, 0]} scale={[0.78, 0.42, 1]}>
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, built.feet + 0.012, 0]} scale={[0.5, 0.26, 1]}>
         <circleGeometry args={[1, 48]} />
         <meshBasicMaterial map={shadow} transparent depthWrite={false} />
       </mesh>
