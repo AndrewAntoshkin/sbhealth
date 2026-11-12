@@ -560,8 +560,8 @@
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
     grid-template-areas:
       'top top'
-      'hero next'
       'hero att'
+      'hero next'
       'rest rest'
       'read learn';
     gap: 32px 24px;
@@ -571,7 +571,7 @@
   .hm-top { grid-area: top; }
   .hm-hero { grid-area: hero; min-height: 420px; padding: 30px 28px 28px; }
   .hm-hero-copy { min-height: 360px; }
-  .hm-hero > img { right: -22%; width: 86%; }
+  .hm-hero > img { right: -27%; bottom: -3%; width: auto; height: 106%; max-width: none; }
   .hm-next { grid-area: next; }
   .hm-att { grid-area: att; }
   .hm-learn { grid-area: learn; }
