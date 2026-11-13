@@ -4,14 +4,13 @@ import { Booking } from '../Booking'
 import { ARTICLES } from '../data/articles'
 import { doctorById, doctorFor, roleTo, threadOf } from '../data/doctors'
 import { IndexSheet } from '../IndexSheet'
-import { TopActions } from '../TopActions'
-import { NavBar } from '../NavBar'
+import { TabHeader } from '../NavBar'
 import { queueQuestion, suggestions } from '../assistant'
 import { AiMark } from './Assistant'
 import { DURATION, MODE_LABEL, nextAppointment, useCore, type Appointment } from '../store'
 import { cap, fmtDay, fmtDayLong, fmtTime, inDays } from '../time'
 import { MESH_COLOR, RISK_SOFT, levelOf, systemById, type SystemId } from '../data/systems'
-import { AVATAR, DoctorAva, INDEX, ORDER, ORGAN_TITLE, RiskTag, TONE, thumb } from '../shared'
+import { DoctorAva, INDEX, ORDER, ORGAN_TITLE, RiskTag, TONE, thumb } from '../shared'
 import { Dock, type DockTab } from './Dock'
 
 const HERO = `${import.meta.env.BASE_URL}hero.webp`
@@ -34,10 +33,6 @@ function greeting() {
   return 'Добрый вечер'
 }
 
-function today() {
-  const text = new Intl.DateTimeFormat('ru-RU', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())
-  return text.charAt(0).toUpperCase() + text.slice(1)
-}
 
 export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; go: (to: string) => void; open?: 'index' }) {
   const [indexOpen, setIndexOpen] = useState(open === 'index')
@@ -73,20 +68,7 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
   return (
     <>
       <main className="screen home" inert={overlay || undefined}>
-        <NavBar
-          title="Сводка"
-          titleAfter={9999}
-          left={
-            <button type="button" className="hm-me" onClick={() => go('#/profile')} aria-label="Профиль">
-              <img src={AVATAR} alt="" width="44" height="44" decoding="async" draggable={false} />
-              <span>
-                <b>{greeting()}, Алексей</b>
-                <small>{today()}</small>
-              </span>
-            </button>
-          }
-          right={<TopActions go={go} avatar={false} />}
-        />
+        <TabHeader title="Сводка" sub={`${greeting()}, Алексей`} go={go} />
         <div className="hm-wrap">
           <section className="hm-hero" aria-label="Индекс здоровья">
             <img src={HERO} alt="" width="900" height="1100" decoding="async" fetchPriority="high" draggable={false} />

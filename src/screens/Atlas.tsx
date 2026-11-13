@@ -13,7 +13,7 @@ import { ArrowCounterClockwise, ArrowRight, CalendarCheck, CaretLeft, CaretRight
 import { AiMark } from './Assistant'
 import { Booking } from '../Booking'
 import { IndexSheet } from '../IndexSheet'
-import { TopActions } from '../TopActions'
+import { TabHeader } from '../NavBar'
 import { Dock, type DockTab } from './Dock'
 import { doctorById, doctorFor, roleTo } from '../data/doctors'
 import { MODE_LABEL, cancelAppointment, useCore, type Appointment } from '../store'
@@ -110,18 +110,19 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
 
   return (
     <div className="app atlas">
-      <header className="top" inert={scoreOpen || undefined}>
-        {selected && (
-          <button className="back" type="button" aria-label="Ко всему телу" onClick={() => setSelected(null)}>
-            <CaretLeft size={20} weight="bold" aria-hidden="true" />
-          </button>
-        )}
-        <div className="top-title">
-          <h1>Атлас тела</h1>
-          <p className="kicker">13 систем</p>
-        </div>
-        <TopActions go={go} />
-      </header>
+      <TabHeader
+        title="Атлас тела"
+        sub="13 систем"
+        go={go}
+        inert={scoreOpen}
+        before={
+          selected && (
+            <button className="back" type="button" aria-label="Ко всему телу" onClick={() => setSelected(null)}>
+              <CaretLeft size={20} weight="bold" aria-hidden="true" />
+            </button>
+          )
+        }
+      />
 
       <div className="workspace" inert={scoreOpen || undefined}>
         <div className="stage" onPointerDownCapture={() => setHint(false)}>

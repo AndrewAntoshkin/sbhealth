@@ -5,8 +5,7 @@ import { DOCTORS, doctorById, doctorFor, threadOf, type Doctor } from '../data/d
 import { MESH_COLOR, RISK_SOFT, levelOf, systemById, type SystemId } from '../data/systems'
 import { DoctorAva, ORDER, ORGAN_TITLE, RiskTag, thumb } from '../shared'
 import { ensureThread } from '../store'
-import { TopActions } from '../TopActions'
-import { NavBar } from '../NavBar'
+import { NavBar, TabHeader } from '../NavBar'
 import { fmtDay, fmtTime, inDays } from '../time'
 import { Dock, type DockTab } from './Dock'
 
@@ -81,14 +80,8 @@ export function Doctors({ go, onTab }: { go: (to: string) => void; onTab: (tab: 
   return (
     <>
       <main className="screen doctors" inert={booking !== null || undefined}>
-        <NavBar title="Врачи" right={<TopActions go={go} />} />
+        <TabHeader title="Врачи" sub="Запись за минуту и чат с врачом" go={go} />
         <div className="dr-wrap">
-          <header className="tab-head">
-            <div>
-              <h1>Врачи</h1>
-              <p>Запись за минуту и чат с врачом</p>
-            </div>
-          </header>
 
           {!q && (
             <section className="hm-sec" aria-labelledby="dr-rec">

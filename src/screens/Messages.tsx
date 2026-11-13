@@ -1,10 +1,9 @@
 import { useEffect, useRef, useState } from 'react'
 import { ArrowUp, CalendarCheck, CaretLeft } from '@phosphor-icons/react'
 import { doctorById } from '../data/doctors'
-import { TopActions } from '../TopActions'
 import { MODE_LABEL, nextAppointment, sendMessage, useCore, useLive, viewThread, type Appointment, type Msg, type Thread } from '../store'
 import { fmtTime, fmtWhen, rel } from '../time'
-import { NavBar } from '../NavBar'
+import { TabHeader } from '../NavBar'
 import { AiMark } from './Assistant'
 import { Dock, type DockTab } from './Dock'
 
@@ -147,11 +146,8 @@ export function Messages({ threadId, go, onTab }: { threadId: string | null; go:
   return (
     <>
       <main className={open ? 'screen msgs has-thread' : 'screen msgs'}>
-        <NavBar title="Сообщения" right={<TopActions go={go} />} />
+        <TabHeader title="Сообщения" sub="Врачи, команда и ассистент" go={go} />
         <div className="mg-wrap">
-          <header className="mg-title">
-            <h1>Сообщения</h1>
-          </header>
           <div className="mg-body">
             <aside className="mg-list" aria-label="Диалоги">
               <button type="button" className="mg-row mg-ai" onClick={() => go('#/assistant')}>

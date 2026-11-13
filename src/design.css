@@ -5,8 +5,8 @@
   Концепция: чистый белый холст, крупная анатомия и живые лица врачей.
   — Холст и карточки белые. Карточку отделяет тонкая линия, а не серая подложка:
     цвет органов и уровней риска на белом читается чисто.
-  — Один фирменный цвет — синий. Им отмечено всё, что нажимается главным:
-    основные кнопки, активная вкладка, выбор, ссылки, ассистент.
+  — Акцент один — почти чёрный. Им отмечено всё, что нажимается главным:
+    основные кнопки, активная вкладка, выбор, ассистент.
   — Свой цвет есть только у уровней риска. Мягкие оттенки риска — фон под органами.
   — Заголовки жирные и крупные, текст спокойный.
 
@@ -20,10 +20,10 @@
 */
 
 :root {
-  --brand: #2f6bff;
-  --brand-press: #1f56e0;
-  --brand-soft: #edf2ff;
-  --brand-ink: #1d4ed8;
+  --brand: #111317;
+  --brand-press: #000;
+  --brand-soft: #f1f2f4;
+  --brand-ink: #111317;
 
   --bg: #fff;
   --card: #fff;
@@ -67,7 +67,7 @@ body,
 .app.atlas,
 .screen { background: var(--bg); }
 
-::selection { background: #d7e2ff; color: var(--ink); }
+::selection { background: #dfe1e6; color: var(--ink); }
 input, textarea { caret-color: var(--brand); }
 * { scrollbar-width: thin; scrollbar-color: rgba(15, 17, 21, 0.18) transparent; }
 
@@ -224,7 +224,7 @@ input, textarea { caret-color: var(--brand); }
 
 .dr-search:focus-within { box-shadow: 0 0 0 2px var(--brand); }
 
-/* выбор: синий */
+/* выбор: чёрная обводка */
 .mg-row.is-on,
 .bk-mode.is-on,
 .dp-slots button.is-on { background: var(--brand-soft); box-shadow: inset 0 0 0 2px var(--brand); }
@@ -379,7 +379,40 @@ input, textarea { caret-color: var(--brand); }
 .tab-head,
 .mg-title { min-height: 0; padding: 4px 4px 0; }
 
-/* ════════ Нижняя навигация: плавающая пилюля, активный пункт синий ════════ */
+/* шапка вкладки — одна на Сводке, Атласе, Врачах и Сообщениях */
+.top.tab-top {
+  display: block;
+  padding: env(safe-area-inset-top) 0 0;
+  background: transparent;
+  transition: background-color 0.2s, box-shadow 0.2s;
+}
+
+.screen > .tab-top { position: sticky; top: 0; z-index: 30; }
+
+.tab-top.is-scrolled {
+  background: rgba(255, 255, 255, 0.86);
+  -webkit-backdrop-filter: saturate(1.8) blur(20px);
+  backdrop-filter: saturate(1.8) blur(20px);
+  box-shadow: 0 1px 0 var(--border);
+}
+
+.tab-top-in {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 1080px;
+  min-height: 76px;
+  margin: 0 auto;
+  padding: 14px 16px 10px;
+}
+
+.screen > .tab-top + * { padding-top: 12px; }
+
+.tab-top h1 { font-size: 28px; font-weight: 700; letter-spacing: -0.025em; }
+.tab-top .kicker { margin: 2px 0 0; overflow: hidden; font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
+.app.atlas .tab-top-in { max-width: none; }
+
+/* ════════ Нижняя навигация: плавающая пилюля, активный пункт чёрный ════════ */
 .dock {
   border: 0;
   background: rgba(255, 255, 255, 0.94);
@@ -431,39 +464,23 @@ input, textarea { caret-color: var(--brand); }
   .hm-wrap, .mg-list, .pf-wrap, .dr-wrap, .ln-wrap { padding-bottom: calc(104px + env(safe-area-inset-bottom)); }
   .app.atlas .workspace { padding-bottom: calc(76px + env(safe-area-inset-bottom)); }
 
-  .msgs.has-thread .nav { display: none; }
+  .msgs.has-thread .nav,
+  .msgs.has-thread .tab-top { display: none; }
 }
 
 /* ════════ Сводка ════════ */
-.hm-wrap { gap: 28px; padding-top: 6px; }
+.hm-wrap { gap: 28px; }
+.hm-nextwrap { display: block; }
 
-.hm-me {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ink);
-  font: inherit;
-  text-align: left;
-}
 
-.hm-me img { flex: 0 0 auto; width: 44px; height: 44px; border-radius: 50%; object-fit: cover; }
-.hm-me span { display: flex; flex-direction: column; min-width: 0; }
-.hm-me b { overflow: hidden; font-size: 16px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
-.hm-me small { color: var(--muted); font-size: 13px; }
-.home .nav-in { grid-template-columns: minmax(0, 1fr) 0 auto; }
-
-/* индекс: фирменная синяя карточка */
+/* индекс: тёмная карточка */
 .hm-hero {
   min-height: 264px;
   padding: 22px;
   border-radius: 28px;
   color: #fff;
   background:
-    radial-gradient(70% 80% at 92% 70%, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 70%),
+    radial-gradient(70% 80% at 92% 70%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 70%),
     var(--brand);
   box-shadow: none;
 }
@@ -565,6 +582,7 @@ input, textarea { caret-color: var(--brand); }
 .hm-next .nx-title { margin: 14px 0 0; font-size: 20px; font-weight: 700; line-height: 1.2; }
 .hm-next .nx-text { margin: 6px 0 0; color: var(--ink-soft); font-size: 15px; line-height: 1.45; }
 .hm-next .nx-actions { width: 100%; margin-top: 16px; }
+.hm-next.is-booked { background: var(--card); box-shadow: inset 0 0 0 1px var(--border); }
 .hm-next.is-booked .nx-when { margin: 0; }
 
 .hm-readings { border-radius: 24px; }
@@ -808,7 +826,9 @@ input, textarea { caret-color: var(--brand); }
 
 /* ════════ Широкие экраны ════════ */
 @media (min-width: 960px), (orientation: landscape) and (min-width: 640px) and (max-height: 520px) {
-  .nav-in { padding: 0 32px; }
+  .nav-in,
+  .tab-top-in { padding-left: 32px; padding-right: 32px; }
+  .app.atlas .tab-top-in { padding-left: 16px; padding-right: 16px; }
 
   .hm-wrap {
     grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
@@ -827,8 +847,8 @@ input, textarea { caret-color: var(--brand); }
   .hm-hero > img { right: -22%; bottom: -4%; height: 112%; }
   .hm-pills { grid-area: pills; margin: 0; padding: 0; scroll-padding-inline: 0; }
   .hm-att { grid-area: att; }
-  .hm-nextwrap { grid-area: next; display: flex; flex-direction: column; gap: 14px; }
-  .ai-entry { grid-area: ai; align-self: end; }
+  .hm-nextwrap { grid-area: next; display: flex; flex-direction: column; gap: 0; }
+  .ai-entry { grid-area: ai; align-self: stretch; justify-content: space-between; margin-top: 36px; }
   .hm-learn { grid-area: learn; }
   .hm-read { grid-area: read; }
   .hm-read .hm-readings { display: flex; flex-direction: column; padding: 0; }
@@ -838,7 +858,6 @@ input, textarea { caret-color: var(--brand); }
 
   .dr-filter { margin: 2px 0 0; padding: 0 0 2px; }
 
-  .app.atlas .top { padding-left: 16px; padding-right: 16px; }
   .stage { border-radius: 28px; background: #fff; box-shadow: inset 0 0 0 1px var(--border); }
   .panel { border-radius: 28px; }
 
