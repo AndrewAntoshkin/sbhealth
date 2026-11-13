@@ -1,0 +1,252 @@
+/* ——— Старт: три слайда с разными картинками ——— */
+.start {
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  display: flex;
+  flex-direction: column;
+  padding: calc(14px + env(safe-area-inset-top)) 0 calc(16px + env(safe-area-inset-bottom));
+  overflow: hidden;
+  background: #fff;
+}
+
+.st-top { display: flex; align-items: center; padding: 0 20px; }
+.st-brand { display: inline-flex; align-items: center; gap: 10px; }
+.st-brand b { font-size: 18px; font-weight: 600; letter-spacing: -0.04em; }
+.st-brand .mark { width: 32px; height: 32px; border-radius: 12px; box-shadow: none; }
+
+.st-track {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.st-track::-webkit-scrollbar { display: none; }
+
+.st-slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(18px, 4dvh, 36px) 20px 0;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+}
+
+.st-slide h1,
+.st-slide h2 {
+  max-width: 10em;
+  margin: 0;
+  font-size: clamp(34px, 10.4vw, 46px);
+  font-weight: 500;
+  line-height: 1;
+  letter-spacing: -0.055em;
+  text-wrap: balance;
+}
+
+.st-visual {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 1 · тело и три плашки */
+.st-bodybox {
+  position: relative;
+  height: 100%;
+  max-height: 560px;
+  aspect-ratio: 900 / 1100;
+  max-width: 100%;
+}
+
+.st-bodybox img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  user-select: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 78%, transparent 100%);
+}
+
+.st-chip {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--sh-lift);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
+  white-space: nowrap;
+  animation: st-pop 0.6s var(--d) var(--ease) both;
+}
+
+.st-chip i { width: 8px; height: 8px; border-radius: 50%; }
+.st-chip b { font-size: 14px; font-weight: 600; letter-spacing: -0.03em; }
+.st-chip em { color: var(--muted); font-size: 12px; font-style: normal; font-weight: 500; }
+
+/* 2 · четыре органа и шкала цвета */
+.is-color { flex-direction: column; gap: 40px; }
+
+.st-tiles {
+  width: 100%;
+  max-width: 380px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin: 0;
+  padding: 0 0 28px;
+  list-style: none;
+}
+
+.st-tiles li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 14px 14px 16px;
+  border-radius: 24px;
+}
+
+.st-tiles li:nth-child(even) { transform: translateY(28px); }
+.st-tiles img { width: 84px; height: 84px; margin-bottom: 4px; object-fit: contain; }
+.st-tiles b { font-size: 16px; font-weight: 600; letter-spacing: -0.03em; }
+.is-color .legend { width: 100%; max-width: 380px; }
+
+/* 3 · врачи: три круглых портрета разного размера и подпись главного */
+.st-docbox {
+  position: relative;
+  width: 100%;
+  max-width: 340px;
+  aspect-ratio: 1 / 1.12;
+}
+
+.st-person {
+  position: absolute;
+  right: 0;
+  bottom: 5%;
+  width: 68%;
+  margin: 0;
+}
+
+.st-person img,
+.st-ava { display: block; border-radius: 50%; object-fit: cover; background: #dfe6e8; }
+.st-person img { width: 100%; height: auto; aspect-ratio: 1; box-shadow: 0 0 0 6px #fff, 0 0 0 7px var(--line); }
+
+.st-ava { position: absolute; height: auto; }
+.st-ava.is-a { left: 2%; top: 0; width: 40%; aspect-ratio: 1; }
+.st-ava.is-b { left: 0; bottom: 20%; width: 27%; aspect-ratio: 1; }
+
+.st-person figcaption {
+  position: absolute;
+  left: 50%;
+  bottom: -18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  padding: 10px 20px 11px;
+  border-radius: 999px;
+  background: #fff;
+  box-shadow: var(--sh-float);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.st-person figcaption b { font-size: 16px; font-weight: 600; letter-spacing: -0.035em; }
+.st-person figcaption span { color: var(--muted); font-size: 13px; }
+
+/* низ: точки и кнопка */
+.st-foot { display: flex; flex-direction: column; gap: 6px; padding: 8px 20px 0; }
+
+.st-dots { display: flex; justify-content: center; }
+
+.st-dots button {
+  position: relative;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.st-dots button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(16, 21, 28, 0.18);
+  transform: translate(-50%, -50%);
+  transition: width 0.25s var(--ease), background-color 0.25s var(--ease);
+}
+
+.st-dots button.is-on::after { width: 22px; background: var(--ink); }
+.st-dots button:focus-visible { outline: 2px solid var(--focus); outline-offset: -2px; border-radius: 999px; }
+
+.primary.st-go {
+  width: 100%;
+  height: 64px;
+  justify-content: space-between;
+  padding: 0 9px 0 28px;
+  font-size: 18px;
+}
+
+.st-go-icon {
+  width: 46px;
+  height: 46px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #fff;
+  color: var(--ink);
+}
+
+@keyframes st-pop { from { opacity: 0; transform: translateY(10px) scale(0.95); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .st-chip { animation: none; }
+  .st-dots button::after { transition: none; }
+}
+
+/* ——— Широкие экраны: текст слева, картинка справа ——— */
+@media (min-width: 960px), (orientation: landscape) and (min-width: 640px) and (max-height: 520px) {
+  .start { padding: 24px 0 0; }
+  .st-top { padding: 0 5vw; }
+
+  .st-slide {
+    flex-direction: row;
+    align-items: center;
+    gap: 4vw;
+    padding: 0 5vw 120px;
+  }
+
+  .st-slide h1,
+  .st-slide h2 { flex: 1 1 0; max-width: 9em; font-size: clamp(48px, 5.6vw, 84px); }
+
+  .st-visual { flex: 1 1 0; height: 100%; margin-top: 0; }
+  .st-bodybox { max-height: none; }
+
+  .st-foot {
+    position: absolute;
+    left: 5vw;
+    bottom: 40px;
+    width: min(26rem, 40vw);
+    padding: 0;
+  }
+
+  .st-dots { justify-content: flex-start; margin-left: -4px; }
+}

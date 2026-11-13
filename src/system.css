@@ -1,0 +1,209 @@
+/*
+  Единая система оформления. Подключается последней и задаёт правила для всего приложения.
+
+  Основа: белая страница. Карточки не парят, а лежат на ней как спокойная светло-серая
+  поверхность без тени. Тень и тонкое кольцо остаются только у того, что действительно
+  поверх: плавающая навигация, шторки, плашки на 3D-сцене, всплывающие окна.
+
+  Шкала радиусов:   12 · 16 · 24 · 32 · пилюля
+  Шкала кегля:      12 · 13 · 14 · 15 · 16 · 18 · 20 · 24 (+ крупные числа)
+  Акцент интерфейса: чернила. Цвет несут только уровни риска.
+*/
+
+:root {
+  --canvas: #fff;
+  --stage: #fff;
+  --surface: #f5f6f8;
+  --surface-2: #eceef2;
+  --line: rgba(16, 21, 28, 0.08);
+
+  --r-s: 12px;
+  --r-m: 16px;
+  --r-l: 24px;
+  --r-xl: 32px;
+  --r-pill: 999px;
+
+  /* в потоке тени нет */
+  --sh-card: none;
+  --sh-hero: none;
+  /* поверх сцены и страницы: кольцо и короткая тень */
+  --sh-lift: 0 0 0 1px rgba(16, 21, 28, 0.06), 0 4px 12px -6px rgba(16, 21, 28, 0.18);
+  --sh-btn: 0 1px 2px rgba(16, 21, 28, 0.18);
+  /* плавающее: навигация, шторки, окна */
+  --sh-float: 0 0 0 1px rgba(16, 21, 28, 0.05), 0 14px 32px -14px rgba(16, 21, 28, 0.3);
+
+  background: var(--canvas);
+}
+
+body,
+.app,
+.app.atlas,
+.screen {
+  background: #fff;
+}
+
+/* ——— Поверхности в потоке: светло-серая заливка, без тени и обводки ——— */
+.overview-list button,
+.card,
+.dx-metric,
+.dx-note,
+.hm-readings,
+.hm-rail button,
+.hm-next,
+.bk-card,
+.bk-mode,
+.bk-day,
+.bk-slot,
+.bk-ghost,
+.nt-item,
+.mg-row,
+.pf-stats div,
+.pf-card,
+.pf-row,
+.dr-rec,
+.dr-row,
+.dp-stats div,
+.dp-systems button,
+.dp-slots button,
+.ln-item,
+.ln-doc,
+.chip,
+.mg-quick button,
+.pf-chips span {
+  border: 0;
+  background: var(--surface);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+.dr-search,
+.mg-composer input {
+  border: 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.dr-search:focus-within { box-shadow: 0 0 0 2px var(--focus); }
+
+/* выбранное состояние: чернильное кольцо вместо тени */
+.mg-row.is-on,
+.bk-mode.is-on,
+.dp-slots button.is-on { box-shadow: inset 0 0 0 2px var(--ink); }
+
+/* вложенные элементы внутри серой поверхности остаются белыми */
+.card .chip,
+.hm-next .chip,
+.dx-metric .dx-ico { background: #fff; }
+
+/* пустые состояния: тонкий пунктир вместо тени */
+.mg-hint,
+.pf-empty { box-shadow: inset 0 0 0 1.5px var(--line); }
+
+/* ——— Шапка вкладок: круглые кнопки светло-серые, без обводки ——— */
+.hm-bell,
+.back {
+  border: 0;
+  background: var(--surface);
+  box-shadow: none;
+}
+
+.ta-ava {
+  border: 0;
+  box-shadow: none;
+}
+
+.hm-bell em { box-shadow: 0 0 0 2px #fff; }
+
+/* ——— То, что лежит поверх 3D-сцены и страницы ——— */
+.score,
+.round,
+.float-pill,
+.hint,
+.loader,
+.dcard {
+  border: 0;
+  background: rgba(255, 255, 255, 0.94);
+  box-shadow: var(--sh-lift);
+}
+
+.dcard.is-on { box-shadow: 0 0 0 1.5px var(--c, var(--ink)), var(--sh-lift); }
+
+/* ——— Навигация, шторки, окна ——— */
+.dock { border: 0; box-shadow: var(--sh-float); }
+.sheet,
+.sheet.is-grown { box-shadow: var(--sh-float); }
+.sheet.is-grown { border-color: transparent; }
+
+.modal-sheet,
+.ov-panel,
+.ov-foot { background: #fff; }
+
+.modal-sheet,
+.ov-panel,
+.toast { box-shadow: var(--sh-float); }
+
+.ov-foot { box-shadow: 0 -1px 0 var(--line); }
+
+.panel {
+  border: 0;
+  background: var(--surface);
+  box-shadow: none;
+  -webkit-backdrop-filter: none;
+  backdrop-filter: none;
+}
+
+/* карточки внутри серой боковой панели белые */
+.panel .card,
+.panel .dx-metric,
+.panel .dx-note { background: #fff; }
+
+.mark { box-shadow: none; }
+
+/* ——— Телефон: навигация это таб-бар с тонкой линией сверху ——— */
+@media not ((min-width: 960px) or ((orientation: landscape) and (min-width: 640px) and (max-height: 520px))) {
+  .dock {
+    border-top: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.94);
+    box-shadow: none;
+  }
+
+  .dock-badge { box-shadow: 0 0 0 2px #fff; }
+}
+
+/* ——— Чат ——— */
+.mg-chat { --bub: var(--surface); }
+.mg-msg p { box-shadow: none; }
+
+@media (min-width: 960px), (orientation: landscape) and (min-width: 640px) and (max-height: 520px) {
+  .mg-chat,
+  .mg-empty {
+    background: #fff;
+    box-shadow: inset 0 0 0 1px var(--line);
+  }
+
+  .mg-composer input { background: var(--surface); }
+}
+
+/* ——— Уведомления: одна нейтральная гамма, смысл несёт иконка ——— */
+.nt-ico.is-message { background: var(--surface-2); color: var(--ink); }
+.nt-dot { background: var(--ink); }
+
+/* ——— Кнопки ——— */
+.primary { box-shadow: var(--sh-btn); }
+
+/* ——— Профиль: аватар без тени ——— */
+.pf-ava { border: 0; box-shadow: none; }
+
+/* ——— Широкий атлас: сцена и панель на одной линии с шапкой ——— */
+@media (min-width: 960px), (orientation: landscape) and (min-width: 640px) and (max-height: 520px) {
+  .app.atlas .top { padding-left: 16px; padding-right: 16px; }
+
+  .stage {
+    border-radius: var(--r-xl);
+    background: radial-gradient(60% 46% at 50% 36%, #fff 0%, var(--surface) 100%);
+    box-shadow: none;
+  }
+
+  .panel { border-radius: var(--r-xl); box-shadow: none; }
+}

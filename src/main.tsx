@@ -6,6 +6,8 @@ import './styles.css'
 import './theme.css'
 import './screens.css'
 import './flow.css'
+import './system.css'
+import './start.css'
 import { registerSW } from 'virtual:pwa-register'
 import { initTypo } from './typo'
 
