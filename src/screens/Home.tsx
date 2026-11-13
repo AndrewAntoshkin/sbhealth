@@ -5,6 +5,9 @@ import { ARTICLES } from '../data/articles'
 import { doctorById, doctorFor, roleTo, threadOf } from '../data/doctors'
 import { IndexSheet } from '../IndexSheet'
 import { TopActions } from '../TopActions'
+import { NavBar } from '../NavBar'
+import { queueQuestion, suggestions } from '../assistant'
+import { AiMark } from './Assistant'
 import { DURATION, MODE_LABEL, nextAppointment, useCore, type Appointment } from '../store'
 import { cap, fmtDay, fmtDayLong, fmtTime, inDays } from '../time'
 import { MESH_COLOR, RISK_SOFT, levelOf, systemById, type SystemId } from '../data/systems'
@@ -72,13 +75,13 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
   return (
     <>
       <main className="screen home" inert={overlay || undefined}>
+        <NavBar title="Сводка" right={<TopActions go={go} />} />
         <div className="hm-wrap">
           <header className="hm-top tab-head">
             <div>
               <h1>Сводка</h1>
               <p>{`${greeting()} · ${today().toLowerCase()}`}</p>
             </div>
-            <TopActions go={go} />
           </header>
 
           <section className="hm-hero" aria-label="Индекс здоровья">
@@ -104,6 +107,31 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
                   <Info size={20} weight="bold" aria-hidden="true" />
                 </button>
               </div>
+            </div>
+          </section>
+
+          <section className="ai-entry" aria-label="Ассистент">
+            <button type="button" className="ai-entry-main" onClick={() => go('#/assistant')}>
+              <AiMark size={40} />
+              <span>
+                <b>Спросите ассистента</b>
+                <small>Объяснит показатели и подскажет следующий шаг</small>
+              </span>
+              <ArrowRight size={18} weight="bold" aria-hidden="true" />
+            </button>
+            <div className="ai-entry-chips">
+              {suggestions(null).slice(0, 3).map((q) => (
+                <button
+                  key={q}
+                  type="button"
+                  onClick={() => {
+                    queueQuestion(q)
+                    go('#/assistant')
+                  }}
+                >
+                  {q}
+                </button>
+              ))}
             </div>
           </section>
 

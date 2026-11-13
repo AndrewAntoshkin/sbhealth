@@ -4,6 +4,8 @@ import { doctorById } from '../data/doctors'
 import { TopActions } from '../TopActions'
 import { MODE_LABEL, nextAppointment, sendMessage, useCore, useLive, viewThread, type Appointment, type Msg, type Thread } from '../store'
 import { fmtTime, fmtWhen, rel } from '../time'
+import { NavBar } from '../NavBar'
+import { AiMark } from './Assistant'
 import { Dock, type DockTab } from './Dock'
 
 const QUICK = ['Что взять с собой?', 'Хочу перенести', 'Спасибо']
@@ -145,13 +147,24 @@ export function Messages({ threadId, go, onTab }: { threadId: string | null; go:
   return (
     <>
       <main className={open ? 'screen msgs has-thread' : 'screen msgs'}>
+        <NavBar title="Сообщения" right={<TopActions go={go} />} />
         <div className="mg-wrap">
           <header className="mg-title">
             <h1>Сообщения</h1>
-            <TopActions go={go} />
           </header>
           <div className="mg-body">
             <aside className="mg-list" aria-label="Диалоги">
+              <button type="button" className="mg-row mg-ai" onClick={() => go('#/assistant')}>
+                <AiMark size={48} />
+                <span className="mg-copy">
+                  <span className="mg-top">
+                    <b>Ассистент</b>
+                  </span>
+                  <span className="mg-prev">
+                    <span>Объяснит показатели атласа, отвечает сразу</span>
+                  </span>
+                </span>
+              </button>
               <ul>
                 {sorted.map((thread) => {
                   const last = thread.msgs[thread.msgs.length - 1]

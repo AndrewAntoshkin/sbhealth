@@ -1,8 +1,9 @@
-import { ArrowRight, BookOpenText, CaretLeft, Check } from '@phosphor-icons/react'
+import { ArrowRight, BookOpenText, Check } from '@phosphor-icons/react'
 import { ARTICLES, articleById } from '../data/articles'
 import { doctorById } from '../data/doctors'
 import { MESH_COLOR, RISK_SOFT, levelOf, systemById, type SystemId } from '../data/systems'
 import { DoctorAva, ORGAN_TITLE, thumb } from '../shared'
+import { NavBar } from '../NavBar'
 import { Dock, type DockTab } from './Dock'
 
 function Tile({ systemId }: { systemId?: SystemId }) {
@@ -19,10 +20,14 @@ export function Learn({ id, go, onTab, onAtlas }: { id: string | null; go: (to: 
   return (
     <>
       <main className={article ? 'screen learn is-reading' : 'screen learn'}>
+        <NavBar
+          key={article?.id ?? 'list'}
+          title={article ? article.title : 'Полезное'}
+          onBack={() => go(article ? '#/learn' : '#/home')}
+          backLabel={article ? 'К статьям' : 'К сводке'}
+          titleAfter={article ? 260 : 56}
+        />
         <div className="ln-wrap">
-          <button type="button" className="back ln-back" aria-label={article ? 'К статьям' : 'К сводке'} onClick={() => go(article ? '#/learn' : '#/home')}>
-            <CaretLeft size={20} weight="bold" aria-hidden="true" />
-          </button>
 
           {article ? (
             <article className="ln-article" style={level ? { ['--soft' as string]: RISK_SOFT[level], ['--c' as string]: MESH_COLOR[level] } : undefined}>

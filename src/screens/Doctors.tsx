@@ -1,11 +1,12 @@
 import { useMemo, useState } from 'react'
-import { ArrowRight, Buildings, CalendarBlank, CaretLeft, CaretRight, ChatCircleText, GraduationCap, MagnifyingGlass } from '@phosphor-icons/react'
+import { ArrowRight, Buildings, CalendarBlank, CaretRight, ChatCircleText, GraduationCap, MagnifyingGlass } from '@phosphor-icons/react'
 import { Booking, freeSlots } from '../Booking'
 import { DOCTORS, doctorById, doctorFor, threadOf, type Doctor } from '../data/doctors'
 import { MESH_COLOR, RISK_SOFT, levelOf, systemById, type SystemId } from '../data/systems'
 import { DoctorAva, ORDER, ORGAN_TITLE, RiskTag, thumb } from '../shared'
 import { ensureThread } from '../store'
 import { TopActions } from '../TopActions'
+import { NavBar } from '../NavBar'
 import { fmtDay, fmtTime, inDays } from '../time'
 import { Dock, type DockTab } from './Dock'
 
@@ -55,6 +56,7 @@ function Rec({ doctor, systemId, onOpen, onBook }: { doctor: Doctor; systemId: S
 
 export function Doctors({ go, onTab }: { go: (to: string) => void; onTab: (tab: DockTab) => void }) {
   const [query, setQuery] = useState('')
+  const [role, setRole] = useState<string | null>(null)
   const [booking, setBooking] = useState<BookingState | null>(null)
 
   const recs = useMemo(() => {
@@ -71,20 +73,21 @@ export function Doctors({ go, onTab }: { go: (to: string) => void; onTab: (tab: 
   }, [])
 
   const q = query.trim().toLowerCase()
+  const roles = useMemo(() => [...new Set(DOCTORS.map((d) => d.role))], [])
   const list = DOCTORS.filter(
-    (d) => !q || [d.name, d.role, ...d.helps, ...d.systems.map((s) => systemById(s).name)].join(' ').toLowerCase().includes(q),
+    (d) => (!role || d.role === role) && (!q || [d.name, d.role, ...d.helps, ...d.systems.map((s) => systemById(s).name)].join(' ').toLowerCase().includes(q)),
   )
 
   return (
     <>
       <main className="screen doctors" inert={booking !== null || undefined}>
+        <NavBar title="Врачи" right={<TopActions go={go} />} />
         <div className="dr-wrap">
           <header className="tab-head">
             <div>
               <h1>Врачи</h1>
               <p>Запись за минуту и чат с врачом</p>
             </div>
-            <TopActions go={go} />
           </header>
 
           {!q && (
@@ -110,6 +113,13 @@ export function Doctors({ go, onTab }: { go: (to: string) => void; onTab: (tab: 
               <MagnifyingGlass size={20} weight="bold" aria-hidden="true" />
               <input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Врач, специальность или орган" aria-label="Поиск врача" />
             </label>
+            <div className="dr-filter" role="group" aria-label="Специальность">
+              {[null, ...roles].map((r) => (
+                <button key={r ?? 'all'} type="button" className={r === role ? 'is-on' : undefined} aria-pressed={r === role} onClick={() => setRole(r)}>
+                  {r ?? 'Все'}
+                </button>
+              ))}
+            </div>
             <ul className="dr-list">
               {list.map((doctor) => {
                 const slot = freeSlots(doctor.id, 1)[0]
@@ -171,10 +181,8 @@ export function DoctorProfile({ id, go, onAtlas }: { id: string; go: (to: string
   return (
     <>
       <main className="screen dprofile" inert={booking !== null || undefined}>
+        <NavBar title={doctor.name} onBack={() => go('#/doctors')} backLabel="К списку врачей" titleAfter={210} />
         <div className="dp-wrap">
-          <button type="button" className="back dp-back" aria-label="К списку врачей" onClick={() => go('#/doctors')}>
-            <CaretLeft size={20} weight="bold" aria-hidden="true" />
-          </button>
 
           <header className="dp-hero">
             <DoctorAva id={doctor.id} size={132} className="dp-ava" />

@@ -9,7 +9,8 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from 'react'
-import { ArrowCounterClockwise, ArrowRight, CalendarCheck, CaretLeft } from '@phosphor-icons/react'
+import { ArrowCounterClockwise, ArrowRight, CalendarCheck, CaretLeft, CaretRight } from '@phosphor-icons/react'
+import { AiMark } from './Assistant'
 import { Booking } from '../Booking'
 import { IndexSheet } from '../IndexSheet'
 import { TopActions } from '../TopActions'
@@ -167,6 +168,7 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
                       backLabel="Ко всему телу"
                       onBack={() => setSelected(null)}
                       onBook={(replace) => setBooking({ systemId: system.id, replace })}
+                    onAsk={() => go(`#/assistant/${system.id}`)}
                       withSummary
                       head
                     />
@@ -264,6 +266,7 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
                     backLabel="Все системы"
                     onBack={() => setSelected(null)}
                     onBook={(replace) => setBooking({ systemId: system.id, replace })}
+                    onAsk={() => go(`#/assistant/${system.id}`)}
                     withSummary
                   />
                 </>
@@ -341,6 +344,7 @@ function OrganDetail({
   backLabel,
   onBack,
   onBook,
+  onAsk,
   withSummary = false,
   head = false,
 }: {
@@ -349,6 +353,7 @@ function OrganDetail({
   backLabel: string
   onBack: () => void
   onBook: (replace?: Appointment) => void
+  onAsk: () => void
   withSummary?: boolean
   head?: boolean
 }) {
@@ -439,6 +444,15 @@ function OrganDetail({
         <h3>Что делать</h3>
         <p>{system.advice}</p>
       </section>
+
+      <button type="button" className="ai-ask" onClick={onAsk}>
+        <AiMark size={36} />
+        <span>
+          <b>Спросить ассистента</b>
+          <small>Объяснит «{ORGAN_TITLE[system.id]}» простыми словами</small>
+        </span>
+        <CaretRight size={18} weight="bold" aria-hidden="true" />
+      </button>
 
       {appt ? (
         <section className="dx-appt" aria-label="Ваша запись">

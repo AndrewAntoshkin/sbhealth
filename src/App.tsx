@@ -9,12 +9,13 @@ import { Learn } from './screens/Learn'
 import type { DockTab } from './screens/Dock'
 import { Toaster } from './Toaster'
 import { Start } from './screens/Start'
+import { Assistant } from './screens/Assistant'
 
 // Атлас (и в нём 3D) — отдельный чанк: стартовый и главный экраны не платят за three.js
 const loadAtlas = () => import('./screens/Atlas')
 const Atlas = lazy(() => loadAtlas().then((m) => ({ default: m.Atlas })))
 
-type Route = { name: 'start' } | { name: 'home'; open?: 'index' } | { name: 'doctors'; id: string | null } | { name: 'learn'; id: string | null } | { name: 'messages'; id: string | null } | { name: 'profile' } | { name: 'atlas'; id: SystemId | null }
+type Route = { name: 'start' } | { name: 'home'; open?: 'index' } | { name: 'doctors'; id: string | null } | { name: 'learn'; id: string | null } | { name: 'messages'; id: string | null } | { name: 'profile' } | { name: 'atlas'; id: SystemId | null } | { name: 'assistant'; id: SystemId | null }
 
 function parse(hash: string): Route {
   const [, name, id] = hash.replace(/^#/, '').split('/')
@@ -23,6 +24,7 @@ function parse(hash: string): Route {
   if (name === 'doctors') return { name: 'doctors', id: id || null }
   if (name === 'learn') return { name: 'learn', id: id || null }
   if (name === 'messages') return { name: 'messages', id: id || null }
+  if (name === 'assistant') return { name: 'assistant', id: SYSTEMS.some((item) => item.id === id) ? (id as SystemId) : null }
   if (name === 'atlas') return { name: 'atlas', id: SYSTEMS.some((item) => item.id === id) ? (id as SystemId) : null }
   return { name: 'start' }
 }
@@ -76,6 +78,7 @@ export function App() {
   else if (route.name === 'profile') screen = <Profile go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} onTab={onTab} />
   else if (route.name === 'doctors') screen = route.id ? <DoctorProfile key={route.id} id={route.id} go={go} onAtlas={(id) => go(`#/atlas/${id}`)} /> : <Doctors go={go} onTab={onTab} />
   else if (route.name === 'learn') screen = <Learn id={route.id} go={go} onTab={onTab} onAtlas={(id) => go(`#/atlas/${id}`)} />
+  else if (route.name === 'assistant') screen = <Assistant key={route.id ?? 'all'} about={route.id} go={go} />
   else if (route.name === 'messages') screen = <Messages threadId={route.id} go={go} onTab={onTab} />
   else
     screen = (

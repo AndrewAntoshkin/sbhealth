@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ArrowRight, CalendarCheck, CaretLeft, CaretRight, Stethoscope, TestTube } from '@phosphor-icons/react'
+import { ArrowRight, CalendarCheck, CaretRight, Stethoscope, TestTube } from '@phosphor-icons/react'
 import { IndexSheet } from '../IndexSheet'
 import { MESH_COLOR, levelOf, systemById, type SystemId } from '../data/systems'
 import { metricIcon } from '../metricIcons'
@@ -7,6 +7,7 @@ import { AVATAR, INDEX, TONE } from '../shared'
 import { doctorById, threadOf } from '../data/doctors'
 import { MODE_LABEL, nextAppointment, resetDemo, setPref, usePrefs, useCore, type Prefs } from '../store'
 import { fmtDay, fmtTime, inDays } from '../time'
+import { NavBar } from '../NavBar'
 import { Dock, type DockTab } from './Dock'
 
 const HEIGHT = 178
@@ -57,10 +58,8 @@ export function Profile({ go, onAtlas, onTab }: { go: (to: string) => void; onAt
   return (
     <>
       <main className="screen profile">
+        <NavBar title="Профиль" onBack={() => go('#/home')} titleAfter={90} />
         <div className="pf-wrap">
-          <button type="button" className="back pf-back" aria-label="Назад" onClick={() => go('#/home')}>
-            <CaretLeft size={20} weight="bold" aria-hidden="true" />
-          </button>
           <header className="pf-id">
             <img className="pf-ava" src={AVATAR} alt="Алексей Морозов" width="320" height="320" decoding="async" fetchPriority="high" draggable={false} />
             <div>
