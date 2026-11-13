@@ -141,6 +141,7 @@ function classify(selfName, ancestors) {
   ) {
     return 'respiratory'
   }
+  if (n.includes('gallbladder')) return 'digestive'
   if (
     has('urinary_system') ||
     n.includes('kidney') ||

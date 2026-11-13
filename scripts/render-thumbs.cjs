@@ -37,7 +37,7 @@ const ROWS = {
   // широкая раскладка: камера кадрирует орган целиком, без шторки и сдвигов
   await page.addStyleTag({
     content: `html,body,#root,.app,.stage,.workspace{background:transparent!important}
-      .top,.panel,.reset,.hint{visibility:hidden!important} .stage{box-shadow:none!important;border-radius:0!important}`,
+      .top,.panel,.reset,.hint,.dock,.stage-chip,.toast{visibility:hidden!important} .stage{box-shadow:none!important;border-radius:0!important}`,
   })
   const call = (sel, text) => page.evaluate(({ sel, text }) => {
     const el = [...document.querySelectorAll(sel)].find((n) => n.textContent.includes(text))
