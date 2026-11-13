@@ -20,33 +20,24 @@
 */
 
 :root {
-  --brand: #181510;
+  --brand: #111317;
   --brand-press: #000;
-  --brand-soft: #efe6d8;
-  --brand-ink: #181510;
+  --brand-soft: #f1f2f4;
+  --brand-ink: #111317;
 
-  /* тёплый свет: песочный холст, почти белые карточки */
-  --bg: #f4ede2;
-  --card: #fffdf9;
-  --fill: #efe6d8;
-  --fill-2: #e6dbc9;
-  --border: rgba(112, 84, 36, 0.11);
-  --glass: rgba(244, 237, 226, 0.86);
-  --glass-2: rgba(255, 253, 249, 0.94);
+  --bg: #fff;
+  --card: #fff;
+  --fill: #f4f5f7;
+  --fill-2: #eceef2;
+  --border: #e9ebef;
 
-  /* единственный «живой» цвет интерфейса: лиловый. Индекс, ассистент, выбор.
-     Он не пересекается с цветами риска (зелёный, жёлтый, оранжевый, красный). */
-  --lilac: #d6cfff;
-  --lilac-soft: #ebe7ff;
-  --lilac-deep: #5b45e0;
-
-  --ink: #1b1813;
-  --ink-soft: #4f483d;
-  --muted: #8b8274;
+  --ink: #0f1115;
+  --ink-soft: #444954;
+  --muted: #80858f;
   --focus: var(--brand);
 
-  --ai: var(--lilac-deep);
-  --ai-soft: var(--lilac-soft);
+  --ai: var(--brand);
+  --ai-soft: var(--brand-soft);
 
   /* старые имена токенов ведут к новым */
   --canvas: var(--bg);
@@ -76,7 +67,7 @@ body,
 .app.atlas,
 .screen { background: var(--bg); }
 
-::selection { background: var(--lilac); color: var(--ink); }
+::selection { background: #dfe1e6; color: var(--ink); }
 input, textarea { caret-color: var(--brand); }
 * { scrollbar-width: thin; scrollbar-color: rgba(15, 17, 21, 0.18) transparent; }
 
@@ -143,7 +134,7 @@ input, textarea { caret-color: var(--brand); }
 .hm-link,
 .text-btn {
   border: 0;
-  color: var(--lilac-deep);
+  color: var(--brand);
   font-size: 14px;
   font-weight: 600;
   text-decoration: none;
@@ -258,7 +249,7 @@ input, textarea { caret-color: var(--brand); }
 }
 
 .ta-ava { border: 0; box-shadow: none; }
-.hm-bell em { box-shadow: 0 0 0 2px var(--card); }
+.hm-bell em { box-shadow: 0 0 0 2px #fff; }
 
 /* поверх 3D-сцены */
 .score,
@@ -268,7 +259,7 @@ input, textarea { caret-color: var(--brand); }
 .loader,
 .dcard {
   border: 0;
-  background: var(--glass-2);
+  background: rgba(255, 255, 255, 0.92);
   -webkit-backdrop-filter: blur(12px);
   backdrop-filter: blur(12px);
   box-shadow: var(--sh-lift);
@@ -281,16 +272,16 @@ input, textarea { caret-color: var(--brand); }
 .sheet.is-grown,
 .modal-sheet,
 .ov-panel,
-.toast { background: var(--card); box-shadow: var(--sh-float); }
+.toast { background: #fff; box-shadow: var(--sh-float); }
 .sheet.is-grown { border-color: transparent; }
-.ov-foot { background: var(--card); box-shadow: 0 -1px 0 var(--border); }
+.ov-foot { background: #fff; box-shadow: 0 -1px 0 var(--border); }
 .sheet-grab > i,
 .sheet-grab:focus-visible > i,
 .ov-grab > i { background: #d9dce2; }
 
 .panel {
   border: 0;
-  background: var(--card);
+  background: #fff;
   box-shadow: inset 0 0 0 1px var(--border);
   -webkit-backdrop-filter: none;
   backdrop-filter: none;
@@ -341,7 +332,7 @@ input, textarea { caret-color: var(--brand); }
 }
 
 .nav.is-scrolled {
-  background: var(--glass);
+  background: rgba(255, 255, 255, 0.86);
   -webkit-backdrop-filter: saturate(1.8) blur(20px);
   backdrop-filter: saturate(1.8) blur(20px);
   box-shadow: 0 1px 0 var(--border);
@@ -399,7 +390,7 @@ input, textarea { caret-color: var(--brand); }
 .screen > .tab-top { position: sticky; top: 0; z-index: 30; }
 
 .tab-top.is-scrolled {
-  background: var(--glass);
+  background: rgba(255, 255, 255, 0.86);
   -webkit-backdrop-filter: saturate(1.8) blur(20px);
   backdrop-filter: saturate(1.8) blur(20px);
   box-shadow: 0 1px 0 var(--border);
@@ -424,14 +415,14 @@ input, textarea { caret-color: var(--brand); }
 /* ════════ Нижняя навигация: плавающая пилюля, активный пункт чёрный ════════ */
 .dock {
   border: 0;
-  background: var(--glass-2);
+  background: rgba(255, 255, 255, 0.94);
   -webkit-backdrop-filter: saturate(1.8) blur(20px);
   backdrop-filter: saturate(1.8) blur(20px);
   box-shadow: var(--sh-float);
 }
 
 .dock-item.is-on { background: var(--brand); color: #fff; }
-.dock-badge { box-shadow: 0 0 0 2px var(--card); }
+.dock-badge { box-shadow: 0 0 0 2px #fff; }
 
 @media not ((min-width: 960px) or ((orientation: landscape) and (min-width: 640px) and (max-height: 520px))) {
   .dock {
@@ -482,64 +473,38 @@ input, textarea { caret-color: var(--brand); }
 .hm-nextwrap { display: block; }
 
 
-/* индекс: лиловая карточка. Это главный цветной момент приложения */
+/* индекс: тёмная карточка */
 .hm-hero {
   min-height: 264px;
   padding: 22px;
-  border-radius: 32px;
-  color: var(--ink);
-  background: var(--lilac);
+  border-radius: 28px;
+  color: #fff;
+  background:
+    radial-gradient(70% 80% at 92% 70%, rgba(255, 255, 255, 0.14) 0%, rgba(255, 255, 255, 0) 70%),
+    var(--brand);
   box-shadow: none;
 }
 
-/* светлый круг за фигурой, как свет софита */
-.hm-hero::before {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  right: -18%;
-  bottom: -26%;
-  width: 92%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--lilac-soft);
-}
-
-.hm-hero > img { right: -14%; bottom: -9%; height: 106%; opacity: 1; animation: hero-float 8s ease-in-out infinite; }
+.hm-hero > img { right: -16%; bottom: -6%; height: 116%; opacity: 1; }
 .hm-hero-copy { min-height: 220px; }
-.hm-label { color: var(--lilac-deep); font-size: 15px; font-weight: 600; }
-.hm-index b { font-size: 76px; font-weight: 700; letter-spacing: -0.045em; line-height: 0.9; }
-.hm-index span { color: rgba(27, 24, 19, 0.5); font-size: 20px; font-weight: 600; }
+.hm-label { color: rgba(255, 255, 255, 0.78); font-size: 15px; font-weight: 500; }
+.hm-index b { font-size: 76px; font-weight: 600; letter-spacing: -0.04em; line-height: 0.9; }
+.hm-index span { color: rgba(255, 255, 255, 0.7); font-size: 20px; font-weight: 500; }
 
 .hm-tone {
   align-self: flex-start;
   max-width: none;
   margin-top: 14px !important;
-  padding: 7px 12px 7px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
-  background: rgba(255, 253, 249, 0.72);
-  box-shadow: none;
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
   font-size: 13px;
   font-weight: 600;
   line-height: 1.2;
 }
 
-.hm-tone::before {
-  content: '';
-  display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 8px;
-  border-radius: 50%;
-  background: #f08a24;
-  animation: tone-pulse 2.4s ease-in-out infinite;
-}
-
-.hm-open { background: var(--brand); color: #fff; }
-.hm-info { border: 0; background: rgba(255, 253, 249, 0.72); color: var(--ink); }
-
-@keyframes hero-float { 50% { transform: translateY(-8px); } }
-@keyframes tone-pulse { 50% { box-shadow: 0 0 0 5px rgba(240, 138, 36, 0.22); } }
+.hm-open { background: #fff; color: var(--ink); }
+.hm-info { border: 0; background: rgba(255, 255, 255, 0.18); color: #fff; }
 
 /* системы — таблетки с органом */
 .hm-pills {
@@ -564,7 +529,7 @@ input, textarea { caret-color: var(--brand); }
   padding: 0 14px 0 6px;
   border: 0;
   border-radius: 999px;
-  background: var(--card);
+  background: #fff;
   color: var(--ink);
   font: inherit;
   font-size: 15px;
@@ -573,7 +538,7 @@ input, textarea { caret-color: var(--brand); }
   scroll-snap-align: start;
 }
 
-.hm-pills img { width: 36px; height: 36px; border-radius: 50%; background: var(--soft, var(--fill)); object-fit: contain; }
+.hm-pills img { width: 36px; height: 36px; border-radius: 50%; background: var(--fill); object-fit: contain; }
 .hm-pills i { width: 8px; height: 8px; border-radius: 50%; }
 
 /* требуют внимания */
@@ -613,7 +578,6 @@ input, textarea { caret-color: var(--brand); }
   border-radius: 24px;
 }
 
-.hm-next { text-align: left; }
 .hm-next .ava { border-radius: 50%; object-fit: cover; }
 .hm-next .nx-title { margin: 14px 0 0; font-size: 20px; font-weight: 700; line-height: 1.2; }
 .hm-next .nx-text { margin: 6px 0 0; color: var(--ink-soft); font-size: 15px; line-height: 1.45; }
@@ -634,11 +598,11 @@ input, textarea { caret-color: var(--brand); }
   flex: 0 0 auto;
   place-items: center;
   border-radius: 50%;
-  background: var(--lilac);
-  color: var(--lilac-deep);
+  background: var(--brand-soft);
+  color: var(--brand);
 }
 
-.ai-entry { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 28px; background: var(--lilac-soft); box-shadow: none; }
+.ai-entry { display: flex; flex-direction: column; gap: 12px; padding: 14px; border-radius: 24px; }
 
 .ai-entry-main,
 .ai-ask {
@@ -673,8 +637,8 @@ input, textarea { caret-color: var(--brand); }
   padding: 0 14px;
   border: 0;
   border-radius: 999px;
-  background: var(--card);
-  color: var(--ink);
+  background: var(--brand-soft);
+  color: var(--brand-ink);
   font: inherit;
   font-size: 14px;
   font-weight: 500;
@@ -709,7 +673,7 @@ input, textarea { caret-color: var(--brand); }
   text-align: left;
 }
 
-.ai-suggest svg { flex: 0 0 auto; color: var(--lilac-deep); transform: rotate(45deg); }
+.ai-suggest svg { flex: 0 0 auto; color: var(--brand); transform: rotate(45deg); }
 
 .ai-thread { display: flex; flex-direction: column; gap: 18px; margin: 0; padding: 0; list-style: none; }
 .ai-me { align-self: flex-end; max-width: 82%; }
@@ -719,7 +683,7 @@ input, textarea { caret-color: var(--brand); }
 .ai-body { display: flex; flex-direction: column; gap: 10px; min-width: 0; padding-top: 3px; }
 .ai-body > p { margin: 0; color: var(--ink); font-size: 15px; line-height: 1.5; text-wrap: pretty; }
 .ai-points { display: flex; flex-direction: column; gap: 6px; margin: 0; padding: 0 0 0 18px; color: var(--ink); font-size: 15px; line-height: 1.45; }
-.ai-points li::marker { color: var(--lilac-deep); }
+.ai-points li::marker { color: var(--brand); }
 
 .ai-facts { display: flex; flex-direction: column; gap: 4px; padding: 12px 14px; border-radius: 16px; font-size: 14px; line-height: 1.4; }
 .ai-facts small { color: var(--muted); font-size: 12px; font-weight: 500; }
@@ -740,7 +704,7 @@ input, textarea { caret-color: var(--brand); }
   text-align: left;
 }
 
-.ai-actions svg { color: var(--lilac-deep); }
+.ai-actions svg { color: var(--brand); }
 
 .ai-dots { display: flex; gap: 4px; margin: 0; padding: 10px 0; }
 .ai-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--brand); opacity: 0.35; animation: ai-dot 1s infinite ease-in-out; }
@@ -758,7 +722,7 @@ input, textarea { caret-color: var(--brand); }
   max-width: 640px;
   margin: 0 auto;
   padding: 8px 16px calc(10px + env(safe-area-inset-bottom));
-  background: linear-gradient(rgba(244, 237, 226, 0), var(--bg) 28%);
+  background: linear-gradient(rgba(255, 255, 255, 0), #fff 28%);
 }
 
 .ai-composer input {
@@ -774,7 +738,7 @@ input, textarea { caret-color: var(--brand); }
   font-size: 16px;
 }
 
-.ai-composer input:focus { outline: 2px solid var(--brand); outline-offset: 0; background: var(--card); }
+.ai-composer input:focus { outline: 2px solid var(--brand); outline-offset: 0; background: #fff; }
 
 .ai-composer button {
   display: grid;
@@ -792,15 +756,14 @@ input, textarea { caret-color: var(--brand); }
 
 /* ════════ Атлас ════════ */
 .app.atlas .top { background: transparent; }
-.stage { background: radial-gradient(circle min(44vw, 330px) at 50% 42%, var(--lilac-soft) 0 99%, transparent 100%), var(--bg); transition: background-color 0.3s; }
-.stage.is-zoomed { background: var(--bg); }
+.stage { background: #fff; }
 
-.dx-metric.is-on { background: var(--card); box-shadow: inset 0 0 0 2px var(--c, var(--brand)); }
+.dx-metric.is-on { background: #fff; box-shadow: inset 0 0 0 2px var(--c, var(--brand)); }
 .dx-ico,
 .dx-metric .dx-ico { background: var(--soft, var(--fill)); color: var(--ink-risk, var(--ink)); }
 .dx-metric.is-on .dx-ico { background: var(--c); color: #fff; }
 .dx-visual { background: var(--soft, var(--fill)); }
-.dx-bubble { background: var(--glass-2); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: var(--sh-lift); }
+.dx-bubble { background: rgba(255, 255, 255, 0.9); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: var(--sh-lift); }
 .dx-num b { color: var(--ink-risk, var(--ink)); }
 
 /* ════════ Врачи ════════ */
@@ -813,7 +776,7 @@ input, textarea { caret-color: var(--brand); }
   padding: 0 16px;
   border: 0;
   border-radius: 999px;
-  background: var(--card);
+  background: #fff;
   color: var(--ink);
   font: inherit;
   font-size: 14px;
@@ -846,22 +809,17 @@ input, textarea { caret-color: var(--brand); }
 /* ════════ Профиль ════════ */
 .pf-id h1 { font-size: 26px; }
 .pf-chips span { background: var(--fill); }
-.pf-index { background: var(--lilac); color: var(--ink); box-shadow: none; }
-.pf-index small,
-.pf-index em { color: rgba(27, 24, 19, 0.62); }
-.pf-ring circle:first-child { stroke: rgba(255, 253, 249, 0.7); }
-.pf-ring text { fill: var(--ink); font-weight: 700; }
+.pf-index { background: var(--brand); color: #fff; box-shadow: none; }
 
 /* ════════ Статья ════════ */
 .ln-art,
 .ln-item .ln-art { background: var(--soft, var(--fill)); }
 
 /* ════════ Уведомления ════════ */
-.nt-ico.is-message { background: var(--lilac-soft); color: var(--lilac-deep); }
+.nt-ico.is-message { background: var(--brand-soft); color: var(--brand); }
 .nt-dot { background: var(--brand); }
 
 @media (prefers-reduced-motion: reduce) {
-  .hm-hero > img, .hm-tone::before { animation: none; }
   .ai-dots i { animation: none; opacity: 0.6; }
   .nav, .nav-title, .dock-item span { transition: none; }
 }
@@ -900,49 +858,15 @@ input, textarea { caret-color: var(--brand); }
 
   .dr-filter { margin: 2px 0 0; padding: 0 0 2px; }
 
-  .stage { border-radius: 28px; box-shadow: none; background: radial-gradient(circle min(30vw, 340px) at 50% 44%, var(--lilac-soft) 0 99%, transparent 100%), var(--card); }
-  .stage.is-zoomed { background: var(--card); }
+  .stage { border-radius: 28px; background: #fff; box-shadow: inset 0 0 0 1px var(--border); }
   .panel { border-radius: 28px; }
 
   .mg-wrap { padding-top: 0; }
   .mg-chat,
-  .mg-empty { background: var(--card); box-shadow: inset 0 0 0 1px var(--border); }
+  .mg-empty { background: #fff; box-shadow: inset 0 0 0 1px var(--border); }
 
   .dp-hero { align-items: center; }
 }
-
-/* ════════ Старт ════════ */
-.start { background: var(--bg); }
-.st-slide h1,
-.st-slide h2 { font-weight: 700; letter-spacing: -0.045em; line-height: 1.02; }
-
-/* за телом и врачами — лиловый круг, как в карточке индекса */
-.st-bodybox::before,
-.st-docbox::before {
-  content: '';
-  position: absolute;
-  z-index: 0;
-  left: 50%;
-  top: 46%;
-  width: 104%;
-  aspect-ratio: 1;
-  border-radius: 50%;
-  background: var(--lilac);
-  transform: translate(-50%, -50%);
-}
-
-.st-docbox::before { top: 50%; width: 100%; }
-.st-bodybox img,
-.st-docbox > *,
-.st-chip { z-index: 1; }
-.st-bodybox img { position: relative; }
-.st-chip { background: var(--glass-2); }
-.st-person img { box-shadow: 0 0 0 6px var(--card); }
-.st-person figcaption { background: var(--card); }
-.st-ava { background: var(--lilac-soft); }
-.st-tiles li { box-shadow: none; }
-.st-dots button::after { background: rgba(27, 24, 19, 0.18); }
-.st-go-icon { background: var(--card); }
 
 /* переключатели и счётчики — в бренде, а не системным зелёным */
 .bk-switch.is-on { background: var(--brand); }

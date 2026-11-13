@@ -95,7 +95,7 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
             {ORDER.map((item) => {
               const level = levelOf(item.risk)
               return (
-                <button key={item.id} type="button" style={{ ['--soft' as string]: RISK_SOFT[level] }} onClick={() => onAtlas(item.id)}>
+                <button key={item.id} type="button" onClick={() => onAtlas(item.id)}>
                   <img src={thumb(item.id)} alt="" width="64" height="64" loading="lazy" decoding="async" draggable={false} />
                   {ORGAN_TITLE[item.id]}
                   <i style={{ background: MESH_COLOR[level] }} aria-hidden="true" />

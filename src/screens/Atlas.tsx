@@ -125,7 +125,7 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
       />
 
       <div className="workspace" inert={scoreOpen || undefined}>
-        <div className={selected ? 'stage is-zoomed' : 'stage'} onPointerDownCapture={() => setHint(false)}>
+        <div className="stage" onPointerDownCapture={() => setHint(false)}>
           {/* готовый кадр тела: виден сразу, пока качается и собирается настоящая модель */}
           <div className="stage-chip">
             <ScoreChip value={INDEX} tone={TONE} buttonRef={chipRef} onOpen={() => setScoreOpen(true)} />
