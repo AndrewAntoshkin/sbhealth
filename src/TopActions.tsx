@@ -5,7 +5,7 @@ import { AVATAR } from './shared'
 import { unreadNotifs, useCore } from './store'
 
 /** Колокольчик с уведомлениями и аватар профиля: общий для экранов-вкладок. */
-export function TopActions({ go }: { go: (to: string) => void }) {
+export function TopActions({ go, avatar = true }: { go: (to: string) => void; avatar?: boolean }) {
   const [open, setOpen] = useState(false)
   const unread = unreadNotifs(useCore())
 
@@ -16,9 +16,11 @@ export function TopActions({ go }: { go: (to: string) => void }) {
           <BellSimple size={24} weight="duotone" aria-hidden="true" />
           {unread > 0 && <em aria-hidden="true">{unread}</em>}
         </button>
-        <button className="ta-ava" type="button" aria-label="Профиль" onClick={() => go('#/profile')}>
-          <img src={AVATAR} alt="" width="50" height="50" decoding="async" draggable={false} />
-        </button>
+        {avatar && (
+          <button className="ta-ava" type="button" aria-label="Профиль" onClick={() => go('#/profile')}>
+            <img src={AVATAR} alt="" width="50" height="50" decoding="async" draggable={false} />
+          </button>
+        )}
       </div>
       {open && (
         <Notifications

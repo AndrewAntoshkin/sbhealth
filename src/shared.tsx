@@ -71,8 +71,8 @@ export function Mark() {
     <svg className="mark" viewBox="0 0 40 40" aria-hidden="true">
       <defs>
         <linearGradient id="mk-bg" x1="6" y1="0" x2="34" y2="40" gradientUnits="userSpaceOnUse">
-          <stop offset="0" stopColor="#3ACB61" />
-          <stop offset="1" stopColor="#168B32" />
+          <stop offset="0" stopColor="#5B8CFF" />
+          <stop offset="1" stopColor="#1F56E0" />
         </linearGradient>
         <radialGradient id="mk-glow" cx="12" cy="4" r="30" gradientUnits="userSpaceOnUse">
           <stop offset="0" stopColor="#fff" stopOpacity="0.2" />

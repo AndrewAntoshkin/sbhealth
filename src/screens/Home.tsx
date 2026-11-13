@@ -11,13 +11,12 @@ import { AiMark } from './Assistant'
 import { DURATION, MODE_LABEL, nextAppointment, useCore, type Appointment } from '../store'
 import { cap, fmtDay, fmtDayLong, fmtTime, inDays } from '../time'
 import { MESH_COLOR, RISK_SOFT, levelOf, systemById, type SystemId } from '../data/systems'
-import { INDEX, ORDER, ORGAN_TITLE, RiskTag, thumb } from '../shared'
+import { AVATAR, DoctorAva, INDEX, ORDER, ORGAN_TITLE, RiskTag, TONE, thumb } from '../shared'
 import { Dock, type DockTab } from './Dock'
 
 const HERO = `${import.meta.env.BASE_URL}hero.webp`
 
 const ATTENTION = ORDER.slice(0, 3)
-const REST = ORDER.slice(3)
 
 // показатели недели: по одному-два из самых заметных систем
 const READINGS: { id: SystemId; at: number }[] = [
@@ -69,21 +68,26 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
   }
 
   const top = ATTENTION[0]
-  const topLevel = levelOf(top.risk)
   const apptSystem = appt ? systemById(appt.systemId) : null
 
   return (
     <>
       <main className="screen home" inert={overlay || undefined}>
-        <NavBar title="Сводка" right={<TopActions go={go} />} />
+        <NavBar
+          title="Сводка"
+          titleAfter={9999}
+          left={
+            <button type="button" className="hm-me" onClick={() => go('#/profile')} aria-label="Профиль">
+              <img src={AVATAR} alt="" width="44" height="44" decoding="async" draggable={false} />
+              <span>
+                <b>{greeting()}, Алексей</b>
+                <small>{today()}</small>
+              </span>
+            </button>
+          }
+          right={<TopActions go={go} avatar={false} />}
+        />
         <div className="hm-wrap">
-          <header className="hm-top tab-head">
-            <div>
-              <h1>Сводка</h1>
-              <p>{`${greeting()} · ${today().toLowerCase()}`}</p>
-            </div>
-          </header>
-
           <section className="hm-hero" aria-label="Индекс здоровья">
             <img src={HERO} alt="" width="900" height="1100" decoding="async" fetchPriority="high" draggable={false} />
             <div className="hm-hero-copy">
@@ -92,27 +96,113 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
                 <b>{INDEX}</b>
                 <span>/100</span>
               </p>
+              <p className="hm-tone">{TONE}</p>
               <div className="hm-hero-actions">
                 <button className="hm-open" type="button" onClick={() => onAtlas()}>
                   Открыть атлас
                   <ArrowRight size={18} weight="bold" aria-hidden="true" />
                 </button>
-                <button
-                  className="hm-info"
-                  type="button"
-                  aria-label="Как считается индекс"
-                  aria-haspopup="dialog"
-                  onClick={(event) => openIndex(event.currentTarget)}
-                >
+                <button className="hm-info" type="button" aria-label="Как считается индекс" aria-haspopup="dialog" onClick={(event) => openIndex(event.currentTarget)}>
                   <Info size={20} weight="bold" aria-hidden="true" />
                 </button>
               </div>
             </div>
           </section>
 
+          <nav className="hm-pills" aria-label="Системы организма">
+            {ORDER.map((item) => {
+              const level = levelOf(item.risk)
+              return (
+                <button key={item.id} type="button" onClick={() => onAtlas(item.id)}>
+                  <img src={thumb(item.id)} alt="" width="64" height="64" loading="lazy" decoding="async" draggable={false} />
+                  {ORGAN_TITLE[item.id]}
+                  <i style={{ background: MESH_COLOR[level] }} aria-hidden="true" />
+                </button>
+              )
+            })}
+          </nav>
+
+          <section className="hm-sec hm-att" aria-labelledby="hm-att">
+            <div className="hm-head">
+              <h2 id="hm-att">Требуют внимания</h2>
+              <button type="button" className="hm-link" onClick={() => onAtlas()}>
+                Весь атлас
+              </button>
+            </div>
+            <ul className="hm-attlist">
+              {ATTENTION.map((item) => {
+                const level = levelOf(item.risk)
+                return (
+                  <li key={item.id}>
+                    <button type="button" className="att" style={{ ['--soft' as string]: RISK_SOFT[level] }} onClick={() => onAtlas(item.id)}>
+                      <span className="att-img">
+                        <img src={thumb(item.id)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false} />
+                      </span>
+                      <span className="att-copy">
+                        <b>{ORGAN_TITLE[item.id]}</b>
+                        <small>{item.summary}</small>
+                        <RiskTag level={level} score={item.risk} />
+                      </span>
+                      <span className="att-go" aria-hidden="true">
+                        <ArrowUpRight size={18} weight="bold" />
+                      </span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ul>
+          </section>
+
+          <section className="hm-sec hm-nextwrap" aria-labelledby="hm-next-h">
+            <div className="hm-head">
+              <h2 id="hm-next-h">{appt ? 'Ближайшая запись' : 'Следующий шаг'}</h2>
+            </div>
+            {appt && apptSystem ? (
+              <div className="hm-next is-booked">
+                <p className="nx-when">
+                  <b>{cap(fmtDay(appt.start).split(',')[1].trim())}</b>
+                  <span>{fmtTime(appt.start)}</span>
+                </p>
+                <p className="nx-line">
+                  {inDays(appt.start)} · {doctorById(appt.doctorId).name}, {doctorById(appt.doctorId).role.toLowerCase()}
+                </p>
+                <p className="nx-meta">
+                  {appt.mode === 'video' ? <VideoCamera size={16} weight="duotone" aria-hidden="true" /> : <Buildings size={16} weight="duotone" aria-hidden="true" />}
+                  {MODE_LABEL[appt.mode]}, {DURATION[appt.mode]} мин · тема «{ORGAN_TITLE[appt.systemId]}» · {cap(fmtDayLong(appt.start).split(',')[0])}
+                </p>
+                <div className="nx-actions">
+                  <button type="button" className="nx-btn is-dark" onClick={() => go(`#/messages/${threadOf(appt.doctorId)}`)}>
+                    <ChatCircleText size={18} weight="fill" aria-hidden="true" />
+                    Написать врачу
+                  </button>
+                  <button type="button" className="nx-btn" onClick={() => setBooking({ systemId: appt.systemId, replace: appt })}>
+                    Перенести
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="hm-next">
+                <DoctorAva id={doctorFor(top.id).id} size={56} />
+                <h3 className="nx-title">{`Запишитесь к ${roleTo(doctorFor(top.id))}`}</h3>
+                <p className="nx-text">
+                  {doctorFor(top.id).name} разберёт зону «{ORGAN_TITLE[top.id]}». Приём 30 минут, можно по видео.
+                </p>
+                <div className="nx-actions">
+                  <button type="button" className="nx-btn is-dark" onClick={() => setBooking({ systemId: top.id })}>
+                    Записаться
+                    <ArrowRight size={18} weight="bold" aria-hidden="true" />
+                  </button>
+                  <button type="button" className="nx-btn" onClick={() => go(`#/doctors/${doctorFor(top.id).id}`)}>
+                    О враче
+                  </button>
+                </div>
+              </div>
+            )}
+          </section>
+
           <section className="ai-entry" aria-label="Ассистент">
             <button type="button" className="ai-entry-main" onClick={() => go('#/assistant')}>
-              <AiMark size={40} />
+              <AiMark size={44} />
               <span>
                 <b>Спросите ассистента</b>
                 <small>Объяснит показатели и подскажет следующий шаг</small>
@@ -133,85 +223,6 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
                 </button>
               ))}
             </div>
-          </section>
-
-          <div className="hm-nextwrap">
-            <div className="hm-head hm-next-head" aria-hidden="true">
-              <h2>Следующий шаг</h2>
-            </div>
-          {appt && apptSystem ? (
-            <section className="hm-next is-booked" aria-labelledby="hm-next">
-              <h2 className="sr-only" id="hm-next">Ближайшая запись</h2>
-              <p className="nx-when">
-                <b>{cap(fmtDay(appt.start).split(',')[1].trim())}</b>
-                <span>{fmtTime(appt.start)}</span>
-              </p>
-              <p className="nx-line">
-                {inDays(appt.start)} · {cap(fmtDayLong(appt.start).split(',')[0])} · {doctorById(appt.doctorId).name}, {doctorById(appt.doctorId).role.toLowerCase()}
-              </p>
-              <p className="nx-meta">
-                {appt.mode === 'video' ? <VideoCamera size={16} weight="duotone" aria-hidden="true" /> : <Buildings size={16} weight="duotone" aria-hidden="true" />}
-                {MODE_LABEL[appt.mode]}, {DURATION[appt.mode]} мин · тема «{ORGAN_TITLE[appt.systemId]}»
-              </p>
-              <div className="nx-actions">
-                <button type="button" className="nx-btn is-dark" onClick={() => go(`#/messages/${threadOf(appt.doctorId)}`)}>
-                  <ChatCircleText size={18} weight="fill" aria-hidden="true" />
-                  Написать врачу
-                </button>
-                <button type="button" className="nx-btn" onClick={() => setBooking({ systemId: appt.systemId, replace: appt })}>
-                  Перенести
-                </button>
-              </div>
-            </section>
-          ) : (
-            <section className="hm-next" aria-labelledby="hm-next" style={{ ['--soft' as string]: RISK_SOFT[topLevel], ['--c' as string]: MESH_COLOR[topLevel] }}>
-              <img className="nx-thumb" src={thumb(top.id)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false} />
-              <h2 className="nx-title" id="hm-next">{`Запишитесь к ${roleTo(doctorFor(top.id))}`}</h2>
-              <p className="nx-text">Самая заметная зона в атласе — «{ORGAN_TITLE[top.id]}». Приём займёт 30 минут, время выберете сами.</p>
-              <div className="nx-actions">
-                <button type="button" className="nx-btn is-dark" onClick={() => setBooking({ systemId: top.id })}>
-                  Записаться
-                  <ArrowRight size={18} weight="bold" aria-hidden="true" />
-                </button>
-                <button type="button" className="nx-btn" onClick={() => onAtlas(top.id)}>
-                  Смотреть орган
-                </button>
-              </div>
-            </section>
-          )}
-          </div>
-
-          <section className="hm-sec hm-att" aria-labelledby="hm-att">
-            <div className="hm-head">
-              <h2 id="hm-att">Требуют внимания</h2>
-              <button type="button" className="hm-link" onClick={() => onAtlas()}>
-                Весь атлас
-              </button>
-            </div>
-            <ul className="hm-stack">
-              {ATTENTION.map((item) => {
-                const level = levelOf(item.risk)
-                return (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      className="tile"
-                      style={{ ['--soft' as string]: RISK_SOFT[level], ['--c' as string]: MESH_COLOR[level] }}
-                      onClick={() => onAtlas(item.id)}
-                    >
-                      <span className="tile-go" aria-hidden="true">
-                        <ArrowUpRight size={18} weight="bold" />
-                      </span>
-                      <span className="tile-body">
-                        <span className="tile-name">{ORGAN_TITLE[item.id]}</span>
-                        <RiskTag level={level} score={item.risk} />
-                      </span>
-                      <img src={thumb(item.id)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false} />
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
           </section>
 
           <section className="hm-sec hm-learn" aria-labelledby="hm-learn">
@@ -261,29 +272,6 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
               })}
             </ul>
           </section>
-
-          <section className="hm-sec hm-rest" aria-labelledby="hm-all">
-            <div className="hm-head">
-              <h2 id="hm-all">Остальные системы</h2>
-            </div>
-            <ul className="hm-rail">
-              {REST.map((item) => {
-                const level = levelOf(item.risk)
-                return (
-                  <li key={item.id}>
-                    <button type="button" onClick={() => onAtlas(item.id)} style={{ ['--soft' as string]: RISK_SOFT[level] }}>
-                      <span className="rail-thumb">
-                        <img src={thumb(item.id)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false} />
-                      </span>
-                      <span className="rail-name">{ORGAN_TITLE[item.id]}</span>
-                      <RiskTag level={level} score={item.risk} />
-                    </button>
-                  </li>
-                )
-              })}
-            </ul>
-          </section>
-
         </div>
       </main>
 

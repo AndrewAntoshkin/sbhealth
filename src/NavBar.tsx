@@ -10,12 +10,14 @@ export function NavBar({
   title,
   onBack,
   backLabel = 'Назад',
+  left,
   right,
   titleAfter = 56,
 }: {
   title: string
   onBack?: () => void
   backLabel?: string
+  left?: ReactNode
   right?: ReactNode
   /** через сколько пикселей прокрутки показать короткий заголовок */
   titleAfter?: number
@@ -38,6 +40,7 @@ export function NavBar({
     <div className={cls} ref={ref}>
       <div className="nav-in">
         <div className="nav-side">
+          {left}
           {onBack && (
             <button type="button" className="nav-btn" aria-label={backLabel} onClick={onBack}>
               <CaretLeft size={22} weight="bold" aria-hidden="true" />
