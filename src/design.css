@@ -870,3 +870,39 @@ input, textarea { caret-color: var(--brand); }
 .bk-switch.is-on { background: var(--brand); }
 .mg-row em { background: var(--brand); color: #fff; }
 .bk-mode svg { color: var(--brand); }
+
+/* ════════ Переходы между экранами ════════
+   Как в iOS: экран, в который проваливаются, въезжает справа поверх прежнего,
+   прежний чуть уходит влево и темнеет; «назад» — то же в обратную сторону.
+   Вкладки сменяются коротким растворением, таб-бар при этом стоит на месте. */
+:root { --nav-ease: cubic-bezier(0.32, 0.72, 0, 1); }
+
+.dock { view-transition-name: dock; }
+::view-transition-group(dock) { animation: none; }
+
+::view-transition-image-pair(root) { isolation: auto; }
+::view-transition-old(root),
+::view-transition-new(root) { mix-blend-mode: normal; }
+
+:root[data-nav='push']::view-transition-old(root) { animation: nav-under 0.44s var(--nav-ease) both; }
+:root[data-nav='push']::view-transition-new(root) {
+  animation: nav-in 0.44s var(--nav-ease) both;
+  box-shadow: -10px 0 30px rgba(15, 17, 21, 0.12);
+}
+
+:root[data-nav='pop']::view-transition-old(root) {
+  z-index: 1;
+  animation: nav-out 0.38s var(--nav-ease) both;
+  box-shadow: -10px 0 30px rgba(15, 17, 21, 0.12);
+}
+:root[data-nav='pop']::view-transition-new(root) { animation: nav-back 0.38s var(--nav-ease) both; }
+
+:root[data-nav='tab']::view-transition-old(root) { animation: nav-fade-out 0.14s ease-out both; }
+:root[data-nav='tab']::view-transition-new(root) { animation: nav-fade-in 0.22s ease-out both; }
+
+@keyframes nav-in { from { transform: translateX(100%); } }
+@keyframes nav-under { to { transform: translateX(-30%); filter: brightness(0.92); } }
+@keyframes nav-out { to { transform: translateX(100%); } }
+@keyframes nav-back { from { transform: translateX(-30%); filter: brightness(0.92); } }
+@keyframes nav-fade-out { to { opacity: 0; } }
+@keyframes nav-fade-in { from { opacity: 0; transform: translateY(6px); } }

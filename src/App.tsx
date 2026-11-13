@@ -17,6 +17,38 @@ const Atlas = lazy(() => loadAtlas().then((m) => ({ default: m.Atlas })))
 
 type Route = { name: 'start' } | { name: 'home'; open?: 'index' } | { name: 'doctors'; id: string | null } | { name: 'learn'; id: string | null } | { name: 'messages'; id: string | null } | { name: 'profile' } | { name: 'atlas'; id: SystemId | null } | { name: 'assistant'; id: SystemId | null }
 
+type Motion = 'push' | 'pop' | 'tab'
+
+const WIDE = '(min-width: 960px), (orientation: landscape) and (min-width: 640px) and (max-height: 520px)'
+
+/** Глубина экрана в стеке: вкладки — 0, всё, во что проваливаются, — глубже. */
+function depth(route: Route): number {
+  if (route.name === 'start') return -1
+  if (route.name === 'doctors' || route.name === 'messages') return route.id ? 1 : 0
+  if (route.name === 'learn') return route.id ? 2 : 1
+  if (route.name === 'profile' || route.name === 'assistant') return 1
+  return 0
+}
+
+/** Как сменить экран: въехать справа, уехать вправо, мягко сменить вкладку — или без анимации. */
+function motionOf(prev: Route, next: Route): Motion | null {
+  const a = depth(prev)
+  const b = depth(next)
+  if (prev.name === next.name && a === 0 && b === 0) return null
+  if (prev.name === 'messages' && next.name === 'messages' && window.matchMedia(WIDE).matches) return null
+  if (a < 0) return 'tab'
+  if (b > a) return 'push'
+  if (b < a) return 'pop'
+  return b === 0 ? 'tab' : 'push'
+}
+
+type ViewTransition = { finished: Promise<void> }
+type WithTransitions = Document & { startViewTransition?: (cb: () => void) => ViewTransition }
+
+// где человек остановился на каждом экране: при возврате назад и между вкладками прокрутка сохраняется
+const scrollMemory = new Map<string, number>()
+const screenEl = () => document.querySelector<HTMLElement>('.screen')
+
 function parse(hash: string): Route {
   const [, name, id] = hash.replace(/^#/, '').split('/')
   if (name === 'home') return { name: 'home', open: id === 'index' ? id : undefined }
@@ -34,12 +66,35 @@ export function App() {
   const [route, setRoute] = useState<Route>(() => parse(window.location.hash))
 
   useEffect(() => {
+    let current = parse(window.location.hash)
+    let currentHash = window.location.hash
+    let token = 0
+
     const onChange = () => {
       const next = parse(window.location.hash)
+      const nextHash = window.location.hash
+      const motion = motionOf(current, next)
+      scrollMemory.set(currentHash, screenEl()?.scrollTop ?? 0)
+      current = next
+      currentHash = nextHash
+
+      const swap = () => {
+        flushSync(() => setRoute(next))
+        const el = screenEl()
+        if (el && motion !== 'push') el.scrollTop = scrollMemory.get(nextHash) ?? 0
+      }
+
+      const doc = document as WithTransitions
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      const swap = () => flushSync(() => setRoute(next))
-      if (!reduce && 'startViewTransition' in document) (document as Document & { startViewTransition: (cb: () => void) => void }).startViewTransition(swap)
-      else swap()
+      if (!motion || reduce || !doc.startViewTransition) {
+        swap()
+        return
+      }
+      const mine = ++token
+      document.documentElement.dataset.nav = motion
+      doc.startViewTransition(swap).finished.finally(() => {
+        if (mine === token) delete document.documentElement.dataset.nav
+      })
     }
     window.addEventListener('hashchange', onChange)
     return () => window.removeEventListener('hashchange', onChange)

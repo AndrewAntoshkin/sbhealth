@@ -376,10 +376,6 @@
   .dock-item, .dock-item span { transition: none; }
 }
 
-/* смена экранов: мягкое растворение вместо рывка */
-::view-transition-old(root),
-::view-transition-new(root) { animation-duration: 0.28s; }
-
 /* ——— Широкие экраны ——— */
 @media (min-width: 960px), (orientation: landscape) and (min-width: 640px) and (max-height: 520px) {
   .hm-wrap {
