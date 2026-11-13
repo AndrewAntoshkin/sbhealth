@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { ArrowRight, ArrowUpRight, BookOpenText, ChatCircleText, Info, VideoCamera, Buildings } from '@phosphor-icons/react'
 import { Booking } from '../Booking'
 import { ARTICLES } from '../data/articles'
@@ -43,6 +43,10 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
 
   const opener = useRef<HTMLElement | null>(null)
 
+  useEffect(() => {
+    if (open === 'index') setIndexOpen(true)
+  }, [open])
+
   const openIndex = useCallback((from: HTMLElement | null) => {
     opener.current = from
     setIndexOpen(true)
@@ -50,7 +54,10 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
   const closeIndex = useCallback(() => {
     setIndexOpen(false)
     // адрес вида #/home/index больше не нужен — не плодим записи в истории
-    if (open) window.history.replaceState(null, '', '#/home')
+    if (open) {
+      window.history.replaceState(null, '', '#/home')
+      window.dispatchEvent(new HashChangeEvent('hashchange'))
+    }
     // вернуть фокус после того, как фон перестанет быть inert
     requestAnimationFrame(() => opener.current?.focus({ preventScroll: true }))
     // eslint-disable-next-line react-hooks/exhaustive-deps

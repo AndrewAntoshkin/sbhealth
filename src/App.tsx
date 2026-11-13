@@ -69,11 +69,18 @@ export function App() {
     let current = parse(window.location.hash)
     let currentHash = window.location.hash
     let token = 0
+    // свайп «назад» в Safari уже сам анимирует смену страницы — свою анимацию поверх не запускаем
+    let uaTransition = false
+    const onPop = (event: PopStateEvent) => {
+      uaTransition = Boolean((event as PopStateEvent & { hasUAVisualTransition?: boolean }).hasUAVisualTransition)
+    }
 
     const onChange = () => {
       const next = parse(window.location.hash)
       const nextHash = window.location.hash
       const motion = motionOf(current, next)
+      const native = uaTransition
+      uaTransition = false
       scrollMemory.set(currentHash, screenEl()?.scrollTop ?? 0)
       current = next
       currentHash = nextHash
@@ -81,12 +88,12 @@ export function App() {
       const swap = () => {
         flushSync(() => setRoute(next))
         const el = screenEl()
-        if (el && motion !== 'push') el.scrollTop = scrollMemory.get(nextHash) ?? 0
+        if (el && (motion === 'pop' || motion === 'tab')) el.scrollTop = scrollMemory.get(nextHash) ?? 0
       }
 
       const doc = document as WithTransitions
       const reduce = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-      if (!motion || reduce || !doc.startViewTransition) {
+      if (!motion || native || reduce || !doc.startViewTransition) {
         swap()
         return
       }
@@ -96,8 +103,12 @@ export function App() {
         if (mine === token) delete document.documentElement.dataset.nav
       })
     }
+    window.addEventListener('popstate', onPop)
     window.addEventListener('hashchange', onChange)
-    return () => window.removeEventListener('hashchange', onChange)
+    return () => {
+      window.removeEventListener('popstate', onPop)
+      window.removeEventListener('hashchange', onChange)
+    }
   }, [])
 
   const go = useCallback((to: string) => {
@@ -129,7 +140,7 @@ export function App() {
 
   let screen
   if (route.name === 'start') screen = <Start onStart={() => go('#/atlas')} />
-  else if (route.name === 'home') screen = <Home key={route.open ?? 'home'} open={route.open} go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} />
+  else if (route.name === 'home') screen = <Home open={route.open} go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} />
   else if (route.name === 'profile') screen = <Profile go={go} onAtlas={(id) => go(id ? `#/atlas/${id}` : '#/atlas')} onTab={onTab} />
   else if (route.name === 'doctors') screen = route.id ? <DoctorProfile key={route.id} id={route.id} go={go} onAtlas={(id) => go(`#/atlas/${id}`)} /> : <Doctors go={go} onTab={onTab} />
   else if (route.name === 'learn') screen = <Learn id={route.id} go={go} onTab={onTab} onAtlas={(id) => go(`#/atlas/${id}`)} />

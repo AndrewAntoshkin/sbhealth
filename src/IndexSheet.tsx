@@ -10,8 +10,35 @@ export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelec
   const dialog = useRef<HTMLDivElement>(null)
   const drag = useRef<{ y: number; t: number; pid: number } | null>(null)
 
+  const closeRef = useRef(onClose)
+  closeRef.current = onClose
+
   useEffect(() => {
     dialog.current?.focus({ preventScroll: true })
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.stopPropagation()
+        closeRef.current()
+        return
+      }
+      if (event.key !== 'Tab' || !dialog.current) return
+      const items = [...dialog.current.querySelectorAll<HTMLElement>('button, input, [href], [tabindex]:not([tabindex="-1"])')].filter(
+        (el) => !el.hasAttribute('disabled') && el.offsetParent !== null,
+      )
+      if (!items.length) return
+      const first = items[0]
+      const last = items[items.length - 1]
+      const active = document.activeElement
+      if (event.shiftKey && (active === first || active === dialog.current)) {
+        event.preventDefault()
+        last.focus()
+      } else if (!event.shiftKey && active === last) {
+        event.preventDefault()
+        first.focus()
+      }
+    }
+    window.addEventListener('keydown', onKey, true)
+    return () => window.removeEventListener('keydown', onKey, true)
   }, [])
 
   const down = (event: ReactPointerEvent<HTMLDivElement>) => {
