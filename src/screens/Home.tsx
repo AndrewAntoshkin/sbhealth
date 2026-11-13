@@ -164,30 +164,30 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
                 Весь атлас
               </button>
             </div>
-            <div className="hm-bento">
-              {ATTENTION.map((item, i) => {
+            <ul className="hm-stack">
+              {ATTENTION.map((item) => {
                 const level = levelOf(item.risk)
                 return (
-                  <button
-                    key={item.id}
-                    type="button"
-                    className={i === 0 ? 'tile is-wide' : 'tile'}
-                    style={{ ['--soft' as string]: RISK_SOFT[level], ['--c' as string]: MESH_COLOR[level] }}
-                    onClick={() => onAtlas(item.id)}
-                  >
-                    <img src={thumb(item.id)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false} />
-                    <span className="tile-body">
-                      <span className="tile-name">{ORGAN_TITLE[item.id]}</span>
-                      <RiskTag level={level} score={item.risk} />
-                      {i === 0 && <span className="tile-sum">{item.summary}</span>}
-                    </span>
-                    <span className="tile-go" aria-hidden="true">
-                      <ArrowUpRight size={16} weight="bold" />
-                    </span>
-                  </button>
+                  <li key={item.id}>
+                    <button
+                      type="button"
+                      className="tile"
+                      style={{ ['--soft' as string]: RISK_SOFT[level], ['--c' as string]: MESH_COLOR[level] }}
+                      onClick={() => onAtlas(item.id)}
+                    >
+                      <span className="tile-go" aria-hidden="true">
+                        <ArrowUpRight size={18} weight="bold" />
+                      </span>
+                      <span className="tile-body">
+                        <span className="tile-name">{ORGAN_TITLE[item.id]}</span>
+                        <RiskTag level={level} score={item.risk} />
+                      </span>
+                      <img src={thumb(item.id)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false} />
+                    </button>
+                  </li>
                 )
               })}
-            </div>
+            </ul>
           </section>
 
           <section className="hm-sec hm-learn" aria-labelledby="hm-learn">
