@@ -50,7 +50,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
 .top h1 {
   font-size: 20px;
   font-weight: 600;
-  letter-spacing: -0.045em;
+  letter-spacing: -0.04em;
 }
 
 .kicker { margin-top: 1px; font-size: 12px; font-weight: 500; }
@@ -114,7 +114,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
 .sheet-grab strong {
   font-size: 24px;
   font-weight: 600;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
   line-height: 1.12;
 }
 
@@ -158,7 +158,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
 }
 
 .dthumb { border-radius: 16px; }
-.dname { font-size: 18px; font-weight: 600; letter-spacing: -0.045em; }
+.dname { font-size: 18px; font-weight: 600; letter-spacing: -0.04em; }
 .dsum { font-size: 13px; }
 .dchev { background: rgba(16, 21, 28, 0.06); }
 
@@ -168,7 +168,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
 .panel h2 {
   font-size: 30px;
   font-weight: 600;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.04em;
   line-height: 1.05;
 }
 
@@ -225,7 +225,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   color: var(--ink-risk);
   font-size: 64px;
   font-weight: 250;
-  letter-spacing: -0.07em;
+  letter-spacing: -0.04em;
   line-height: 0.8;
 }
 
@@ -484,7 +484,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
 .fine { margin-top: 28px; font-size: 12px; }
 
 /* ——— Индекс: шторка снизу на телефоне, дровер справа на широком экране ——— */
-.modal-head h2 { font-weight: 600; letter-spacing: -0.05em; }
+.modal-head h2 { font-weight: 600; letter-spacing: -0.04em; }
 .modal-sheet { border-radius: 32px 32px 0 0; }
 .modal .card-kicker { color: var(--muted); font-weight: 600; }
 
@@ -594,7 +594,7 @@ b, strong, dd, .tile-name, .dx-num { font-variant-numeric: tabular-nums; }
   margin: 0;
   font-size: 32px;
   font-weight: 600;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.04em;
   line-height: 1.05;
 }
 

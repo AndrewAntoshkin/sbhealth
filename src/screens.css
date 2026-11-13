@@ -54,7 +54,7 @@
   margin: 2px 0 0;
   font-size: 32px;
   font-weight: 550;
-  letter-spacing: -0.055em;
+  letter-spacing: -0.04em;
   line-height: 1.05;
 }
 
@@ -101,7 +101,7 @@
 .hm-index b {
   font-size: 72px;
   font-weight: 250;
-  letter-spacing: -0.075em;
+  letter-spacing: -0.04em;
   line-height: 0.86;
 }
 
@@ -158,7 +158,7 @@
   margin: 0 4px 12px;
 }
 
-.hm-head h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.045em; }
+.hm-head h2 { margin: 0; font-size: 20px; font-weight: 600; letter-spacing: -0.04em; }
 
 .hm-link {
   padding: 6px 0;
@@ -207,7 +207,7 @@
 .tile-body { display: flex; min-width: 0; flex-direction: column; align-items: flex-start; gap: 8px; }
 .tile.is-wide .tile-body { order: 1; flex: 1; }
 
-.tile-name { font-size: 20px; font-weight: 600; letter-spacing: -0.05em; line-height: 1.08; }
+.tile-name { font-size: 20px; font-weight: 600; letter-spacing: -0.04em; line-height: 1.08; }
 
 .tile-sum {
   display: -webkit-box;
@@ -412,7 +412,7 @@
   .hm-read .hm-readings li + li { border-top: 0; border-left: 1px solid var(--line); }
   .hm-read .hm-readings button { display: grid; grid-template-columns: 10px minmax(0, 1fr); align-items: start; gap: 8px 10px; padding: 16px 18px 18px; }
   .hm-read .hm-readings i { margin-top: 5px; }
-  .hm-read .hm-readings b { grid-column: 2; font-size: 24px; letter-spacing: -0.05em; }
+  .hm-read .hm-readings b { grid-column: 2; font-size: 24px; letter-spacing: -0.04em; }
   .hm-next:not(.is-booked) { grid-template-rows: auto auto 1fr auto; }
   .hm-next:not(.is-booked) .nx-title { grid-row: 1 / span 2; align-self: center; margin: 0; }
   .hm-next:not(.is-booked) .nx-text { align-self: center; }

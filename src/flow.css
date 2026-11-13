@@ -86,7 +86,7 @@ button:disabled { cursor: not-allowed; }
   margin: 0;
   font-size: 24px;
   font-weight: 600;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
   line-height: 1.12;
 }
 
@@ -291,7 +291,7 @@ button:disabled { cursor: not-allowed; }
 }
 
 .bk-day small { color: var(--muted); font-size: 12px; font-weight: 500; }
-.bk-day b { font-size: 24px; font-weight: 600; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+.bk-day b { font-size: 24px; font-weight: 600; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
 .bk-day.is-on { background: var(--ink); color: #fff; }
 .bk-day.is-on small { color: rgba(255, 255, 255, 0.7); }
 .bk-day:disabled { opacity: 0.4; }
@@ -330,7 +330,7 @@ button:disabled { cursor: not-allowed; }
 
 /* проверка */
 .bk-when { display: flex; flex-direction: column; gap: 2px; margin: 2px 0 12px; }
-.bk-when b { font-size: 24px; font-weight: 600; letter-spacing: -0.05em; line-height: 1.1; }
+.bk-when b { font-size: 24px; font-weight: 600; letter-spacing: -0.04em; line-height: 1.1; }
 .bk-when span { color: var(--muted); font-size: 15px; }
 
 .bk-rows { margin: 0; }
@@ -545,7 +545,7 @@ button:disabled { cursor: not-allowed; }
 .dx-appt-k svg, .hm-next.is-booked .hm-kicker svg { color: var(--ok); }
 
 .dx-appt-when { display: flex; align-items: baseline; gap: 10px; margin: 8px 0 0; }
-.dx-appt-when b { font-size: 28px; font-weight: 600; letter-spacing: -0.055em; }
+.dx-appt-when b { font-size: 28px; font-weight: 600; letter-spacing: -0.04em; }
 .dx-appt-when span { color: var(--muted); font-size: 20px; font-weight: 500; letter-spacing: -0.03em; }
 .dx-appt-sub { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
 
@@ -607,7 +607,7 @@ button:disabled { cursor: not-allowed; }
   object-fit: contain;
 }
 
-.nx-title { grid-column: 1; margin: 6px 0 0; font-size: 24px; font-weight: 600; letter-spacing: -0.055em; line-height: 1.1; }
+.nx-title { grid-column: 1; margin: 6px 0 0; font-size: 24px; font-weight: 600; letter-spacing: -0.04em; line-height: 1.1; }
 .nx-text { grid-column: 1 / -1; margin: 12px 0 0; color: var(--ink-soft); font-size: 15px; line-height: 1.45; }
 .hm-next .nx-actions { grid-column: 1 / -1; }
 
@@ -618,7 +618,7 @@ button:disabled { cursor: not-allowed; }
 }
 
 .nx-when { display: flex; align-items: baseline; gap: 12px; margin: 10px 0 0; }
-.nx-when b { font-size: 40px; font-weight: 550; letter-spacing: -0.065em; line-height: 1; }
+.nx-when b { font-size: 40px; font-weight: 550; letter-spacing: -0.04em; line-height: 1; }
 .nx-when span { color: var(--muted); font-size: 24px; font-weight: 500; letter-spacing: -0.04em; }
 .nx-line { margin: 8px 0 0; color: var(--ink-soft); font-size: 15px; }
 .nx-meta { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; color: var(--muted); font-size: 14px; }
@@ -1070,7 +1070,7 @@ button:disabled { cursor: not-allowed; }
   box-shadow: 0 18px 30px -16px rgba(var(--tint), 0.6);
 }
 
-.pf-id h1 { margin: 0; font-size: 28px; font-weight: 550; letter-spacing: -0.055em; line-height: 1.05; }
+.pf-id h1 { margin: 0; font-size: 28px; font-weight: 550; letter-spacing: -0.04em; line-height: 1.05; }
 .pf-id p { margin: 6px 0 0; color: var(--muted); font-size: 15px; }
 .pf-chips { display: flex; flex-wrap: wrap; gap: 6px; }
 
@@ -1127,7 +1127,7 @@ button:disabled { cursor: not-allowed; }
   margin: 4px 0 0;
   font-size: 32px;
   font-weight: 550;
-  letter-spacing: -0.06em;
+  letter-spacing: -0.04em;
   line-height: 1.05;
   font-variant-numeric: tabular-nums;
 }
@@ -1256,7 +1256,7 @@ button.pf-row:focus-visible { outline: 2px solid var(--focus); outline-offset: 2
 .ta-ava img { display: block; width: 100%; height: 100%; object-fit: cover; }
 
 .tab-head, .mg-title { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 0 4px; }
-.tab-head h1 { margin: 0; font-size: 32px; font-weight: 550; letter-spacing: -0.055em; line-height: 1.05; }
+.tab-head h1 { margin: 0; font-size: 32px; font-weight: 550; letter-spacing: -0.04em; line-height: 1.05; }
 .tab-head p { margin: 4px 0 0; color: var(--muted); font-size: 14px; font-weight: 500; }
 
 .ava { display: block; flex: 0 0 auto; border-radius: 50%; background: #dfe6e8; object-fit: cover; }
@@ -1376,12 +1376,12 @@ img.bk-ava { display: block; background: #dfe6e8; object-fit: cover; }
 
 .dp-hero { display: flex; flex-direction: column; align-items: center; text-align: center; }
 .dp-ava { border: 4px solid #fff; box-shadow: var(--sh-lift); }
-.dp-hero h1 { margin: 18px 0 0; font-size: 30px; font-weight: 550; letter-spacing: -0.055em; line-height: 1.05; }
+.dp-hero h1 { margin: 18px 0 0; font-size: 30px; font-weight: 550; letter-spacing: -0.04em; line-height: 1.05; }
 .dp-hero > p { margin: 6px 0 0; color: var(--muted); font-size: 16px; }
 
 .dp-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: 100%; margin: 22px 0 0; }
 .dp-stats div { display: flex; flex-direction: column-reverse; gap: 2px; padding: 14px 6px; border-radius: 24px; background: #fff; box-shadow: var(--sh-card); }
-.dp-stats dd { margin: 0; font-size: 20px; font-weight: 550; letter-spacing: -0.05em; font-variant-numeric: tabular-nums; }
+.dp-stats dd { margin: 0; font-size: 20px; font-weight: 550; letter-spacing: -0.04em; font-variant-numeric: tabular-nums; }
 .dp-stats dt { color: var(--muted); font-size: 12px; font-weight: 500; }
 
 .dp-actions { display: flex; gap: 10px; width: 100%; margin-top: 14px; }
@@ -1522,7 +1522,7 @@ img.bk-ava { display: block; background: #dfe6e8; object-fit: cover; }
 .ln-hero { display: flex; flex-direction: column; gap: 10px; }
 .ln-hero .ln-art { width: 108px; height: 108px; border-radius: 32px; }
 .ln-kicker { margin: 8px 0 0; color: var(--muted); font-size: 14px; font-weight: 500; }
-.ln-hero h1 { margin: 0; font-size: 32px; font-weight: 550; letter-spacing: -0.055em; line-height: 1.06; }
+.ln-hero h1 { margin: 0; font-size: 32px; font-weight: 550; letter-spacing: -0.04em; line-height: 1.06; }
 .ln-lead { margin: 0; color: var(--ink-soft); font-size: 18px; line-height: 1.4; letter-spacing: -0.015em; }
 .ln-text { display: flex; flex-direction: column; gap: 14px; }
 .ln-text p { margin: 0; font-size: 16px; line-height: 1.55; }
@@ -1702,7 +1702,7 @@ p, li { text-wrap: pretty; }
   margin: 0;
   font-size: 24px;
   font-weight: 600;
-  letter-spacing: -0.05em;
+  letter-spacing: -0.04em;
   line-height: 1.1;
 }
 

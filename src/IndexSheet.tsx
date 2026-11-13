@@ -65,8 +65,8 @@ export function IndexSheet({ onClose, onSelect }: { onClose: () => void; onSelec
           <i aria-hidden="true" />
           <div className="modal-head">
             <div>
-              <p className="card-kicker">Как это считается</p>
               <h2 id="ix-title">Индекс здоровья</h2>
+              <p className="card-kicker">Как это считается</p>
             </div>
             <button className="modal-close" type="button" aria-label="Закрыть" onClick={onClose}>
               <svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">

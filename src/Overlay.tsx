@@ -147,8 +147,8 @@ export function Overlay({
               </button>
             )}
             <div className="ov-title">
-              {kicker && <p>{kicker}</p>}
               <h2 id={titleId}>{title}</h2>
+              {kicker && <p>{kicker}</p>}
             </div>
             <button className="ov-btn" type="button" aria-label="Закрыть" onClick={close}>
               <X size={18} weight="bold" aria-hidden="true" />

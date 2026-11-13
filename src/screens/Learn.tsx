@@ -30,10 +30,10 @@ export function Learn({ id, go, onTab, onAtlas }: { id: string | null; go: (to: 
                 <span className="ln-art">
                   <Tile systemId={article.systemId} />
                 </span>
+                <h1>{article.title}</h1>
                 <p className="ln-kicker">
                   {article.kicker} · {article.minutes} мин чтения
                 </p>
-                <h1>{article.title}</h1>
                 <p className="ln-lead">{article.lead}</p>
               </header>
 
@@ -96,10 +96,10 @@ export function Learn({ id, go, onTab, onAtlas }: { id: string | null; go: (to: 
                           <Tile systemId={a.systemId} />
                         </span>
                         <span className="ln-copy">
+                          <b>{a.title}</b>
                           <small>
                             {a.kicker} · {a.minutes} мин
                           </small>
-                          <b>{a.title}</b>
                           <span>{a.lead}</span>
                         </span>
                       </button>

@@ -1,5 +1,5 @@
 import { useCallback, useRef, useState } from 'react'
-import { ArrowRight, ArrowUpRight, BookOpenText, CalendarCheck, ChatCircleText, Info, VideoCamera, Buildings } from '@phosphor-icons/react'
+import { ArrowRight, ArrowUpRight, BookOpenText, ChatCircleText, Info, VideoCamera, Buildings } from '@phosphor-icons/react'
 import { Booking } from '../Booking'
 import { ARTICLES } from '../data/articles'
 import { doctorById, doctorFor, roleTo, threadOf } from '../data/doctors'
@@ -113,16 +113,13 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
             </div>
           {appt && apptSystem ? (
             <section className="hm-next is-booked" aria-labelledby="hm-next">
-              <p className="hm-kicker" id="hm-next">
-                <CalendarCheck size={16} weight="fill" aria-hidden="true" />
-                Ближайшая запись · {inDays(appt.start)}
-              </p>
+              <h2 className="sr-only" id="hm-next">Ближайшая запись</h2>
               <p className="nx-when">
                 <b>{cap(fmtDay(appt.start).split(',')[1].trim())}</b>
                 <span>{fmtTime(appt.start)}</span>
               </p>
               <p className="nx-line">
-                {cap(fmtDayLong(appt.start).split(',')[0])} · {doctorById(appt.doctorId).name}, {doctorById(appt.doctorId).role.toLowerCase()}
+                {inDays(appt.start)} · {cap(fmtDayLong(appt.start).split(',')[0])} · {doctorById(appt.doctorId).name}, {doctorById(appt.doctorId).role.toLowerCase()}
               </p>
               <p className="nx-meta">
                 {appt.mode === 'video' ? <VideoCamera size={16} weight="duotone" aria-hidden="true" /> : <Buildings size={16} weight="duotone" aria-hidden="true" />}
@@ -141,8 +138,7 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
           ) : (
             <section className="hm-next" aria-labelledby="hm-next" style={{ ['--soft' as string]: RISK_SOFT[topLevel], ['--c' as string]: MESH_COLOR[topLevel] }}>
               <img className="nx-thumb" src={thumb(top.id)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false} />
-              <p className="hm-kicker" id="hm-next">Следующий шаг</p>
-              <h2 className="nx-title">{`Запишитесь к ${roleTo(doctorFor(top.id))}`}</h2>
+              <h2 className="nx-title" id="hm-next">{`Запишитесь к ${roleTo(doctorFor(top.id))}`}</h2>
               <p className="nx-text">Самая заметная зона в атласе — «{ORGAN_TITLE[top.id]}». Приём займёт 30 минут, время выберете сами.</p>
               <div className="nx-actions">
                 <button type="button" className="nx-btn is-dark" onClick={() => setBooking({ systemId: top.id })}>
@@ -205,8 +201,8 @@ export function Home({ onAtlas, go, open }: { onAtlas: (id?: SystemId) => void; 
                   <li key={a.id}>
                     <button type="button" className="ln-card" style={lv ? { ['--soft' as string]: RISK_SOFT[lv] } : undefined} onClick={() => go(`#/learn/${a.id}`)}>
                       {sys ? <img src={thumb(sys.id)} alt="" width="256" height="256" loading="lazy" decoding="async" draggable={false} /> : <span className="ln-mark" aria-hidden="true"><BookOpenText size={30} weight="duotone" /></span>}
-                      <small>{a.kicker} · {a.minutes} мин</small>
                       <b>{a.title}</b>
+                      <small>{a.kicker} · {a.minutes} мин</small>
                     </button>
                   </li>
                 )
