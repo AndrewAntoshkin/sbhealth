@@ -10,7 +10,7 @@ const ITEMS: { id: DockTab; label: string; icon: typeof SquaresFour }[] = [
   { id: 'messages', label: 'Сообщения', icon: ChatCircleText },
 ]
 
-/** Плавающая навигация: активный пункт раскрывается в подпись. */
+/** Таб-бар внизу экрана: иконка и подпись у каждого раздела. */
 export function Dock({ active, onGo }: { active: DockTab | null; onGo: (tab: DockTab, el: HTMLElement) => void }) {
   const unread = unreadMessages(useCore())
   return (
