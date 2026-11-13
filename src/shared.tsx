@@ -27,8 +27,13 @@ export const ORDER = systemsByRisk()
 export const INDEX = healthIndex()
 export const TONE = indexTone(INDEX)
 export const LEVELS: RiskLevel[] = ['low', 'watch', 'elevated', 'high']
-export const TOP = ORDER.slice(0, 3).map((item) => item.name.toLowerCase())
-export const TOP_TEXT = `Выше остальных ${TOP[0]}, ${TOP[1]} и ${TOP[2]}. Цвет на модели — это риск, не диагноз.`
+/** Зоны внимания — все системы с повышенным и высоким риском. */
+export const ATTENTION = ORDER.filter((item) => item.risk >= 50)
+const COUNT_WORD = ['Ни одной', 'Одна', 'Две', 'Три', 'Четыре', 'Пять', 'Шесть']
+const zonesWord = (n: number) => (n % 10 === 1 && n % 100 !== 11 ? 'зона' : n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20) ? 'зоны' : 'зон')
+export const ZONES_TITLE = `${COUNT_WORD[ATTENTION.length] ?? ATTENTION.length} ${zonesWord(ATTENTION.length)} внимания`
+const names = ATTENTION.map((item) => item.name.toLowerCase())
+export const TOP_TEXT = `Выше остальных ${names.length > 1 ? `${names.slice(0, -1).join(', ')} и ${names[names.length - 1]}` : names[0]}. Цвет на модели — это риск, не диагноз.`
 
 export function Legend() {
   return (

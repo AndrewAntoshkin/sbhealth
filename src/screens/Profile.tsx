@@ -22,8 +22,8 @@ const ANALYSES: { id: SystemId; at: number; when: string }[] = [
 ]
 
 const HISTORY = [
+  { title: 'Липидный профиль и глюкоза', sub: 'Анализ крови', when: '14 октября', icon: TestTube },
   { title: 'Осмотр терапевта', sub: 'Плановый, профилактика', when: '14 мая', icon: Stethoscope },
-  { title: 'Липидный профиль', sub: 'Анализ крови', when: '2 мая', icon: TestTube },
 ]
 
 const SWITCHES: { key: keyof Prefs; title: string; sub: string }[] = [

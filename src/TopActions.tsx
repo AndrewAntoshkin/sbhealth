@@ -2,11 +2,12 @@ import { useState } from 'react'
 import { BellSimple } from '@phosphor-icons/react'
 import { Notifications } from './Notifications'
 import { AVATAR } from './shared'
-import { unreadNotifs, useCore } from './store'
+import { unreadNotifs, useCore, usePrefs } from './store'
 
 /** Колокольчик с уведомлениями и аватар профиля: общий для экранов-вкладок. */
 export function TopActions({ go, avatar = true }: { go: (to: string) => void; avatar?: boolean }) {
   const [open, setOpen] = useState(false)
+  usePrefs()
   const unread = unreadNotifs(useCore())
 
   return (

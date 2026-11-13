@@ -10,12 +10,11 @@ import { AiMark } from './Assistant'
 import { DURATION, MODE_LABEL, nextAppointment, useCore, type Appointment } from '../store'
 import { cap, fmtDay, fmtDayLong, fmtTime, inDays } from '../time'
 import { MESH_COLOR, RISK_SOFT, levelOf, systemById, type SystemId } from '../data/systems'
-import { DoctorAva, INDEX, ORDER, ORGAN_TITLE, RiskTag, TONE, thumb } from '../shared'
+import { ATTENTION, DoctorAva, INDEX, ORDER, ORGAN_TITLE, RiskTag, TONE, thumb } from '../shared'
 import { Dock, type DockTab } from './Dock'
 
 const HERO = `${import.meta.env.BASE_URL}hero.webp`
 
-const ATTENTION = ORDER.slice(0, 3)
 
 // показатели недели: по одному-два из самых заметных систем
 const READINGS: { id: SystemId; at: number }[] = [

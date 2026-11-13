@@ -185,7 +185,9 @@ export const nextAppointment = (appts: Appointment[] = core.appts) =>
     .filter((a) => a.status === 'booked' && a.start > Date.now() - 30 * 60_000)
     .sort((a, b) => a.start - b.start)[0] ?? null
 
-export const unreadNotifs = (state: Core) => state.notifs.filter((n) => !n.read).length
+/** Советы недели можно выключить в профиле — тогда их не видно и в уведомлениях. */
+export const visibleNotifs = (state: Core) => state.notifs.filter((n) => prefs.tips || n.kind !== 'tip')
+export const unreadNotifs = (state: Core) => visibleNotifs(state).filter((n) => !n.read).length
 export const unreadMessages = (state: Core) => state.threads.reduce((sum, t) => sum + t.unread, 0)
 
 /* ——— действия ——— */

@@ -1,6 +1,6 @@
 import { BellSimple, CalendarCheck, CalendarX, ChatCircleText, Lightbulb, Pulse } from '@phosphor-icons/react'
 import { Overlay } from './Overlay'
-import { markAllNotifsRead, markNotifRead, useCore, type Notif } from './store'
+import { markAllNotifsRead, markNotifRead, useCore, usePrefs, visibleNotifs, type Notif } from './store'
 import { rel } from './time'
 
 const ICON: Record<Notif['kind'], typeof BellSimple> = {
@@ -12,7 +12,8 @@ const ICON: Record<Notif['kind'], typeof BellSimple> = {
 }
 
 export function Notifications({ onClose, onGo }: { onClose: () => void; onGo: (to: string) => void }) {
-  const { notifs } = useCore()
+  const notifs = visibleNotifs(useCore())
+  usePrefs()
   const unread = notifs.filter((n) => !n.read)
   const earlier = notifs.filter((n) => n.read)
 

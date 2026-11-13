@@ -29,7 +29,7 @@ import {
   type RiskLevel,
   type SystemId,
 } from '../data/systems'
-import { INDEX, Legend, Meter, ORDER, ORGAN_TITLE, RiskTag, ScoreChip, TONE, TOP_TEXT, photo, thumb } from '../shared'
+import { INDEX, Legend, Meter, ORDER, ORGAN_TITLE, RiskTag, ScoreChip, TONE, TOP_TEXT, ZONES_TITLE, photo, thumb } from '../shared'
 import { metricIcon } from '../metricIcons'
 import HOTSPOTS from '../data/hotspots.json'
 
@@ -197,7 +197,7 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
                     onMetrics={onMetrics}
                     grab={
                       <>
-                        <strong>Три зоны внимания</strong>
+                        <strong>{ZONES_TITLE}</strong>
                         <p>{TOP_TEXT}</p>
                         <Legend />
                       </>
@@ -274,7 +274,7 @@ export function Atlas({ initial, onTab, go }: { initial: SystemId | null; onTab:
               ) : (
                 <>
                   <article className="card spotlight">
-                    <h2>Три зоны внимания</h2>
+                    <h2>{ZONES_TITLE}</h2>
                     <p>{TOP_TEXT}</p>
                   </article>
                   <h3 className="block-title">Все системы</h3>

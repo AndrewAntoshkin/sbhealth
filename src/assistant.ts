@@ -2,7 +2,7 @@ import { useSyncExternalStore } from 'react'
 import { ARTICLES } from './data/articles'
 import { doctorFor, roleTo } from './data/doctors'
 import { RISK_LABEL, SYSTEMS, levelOf, systemById, type BodySystem, type SystemId } from './data/systems'
-import { INDEX, ORDER, ORGAN_TITLE, TONE } from './shared'
+import { ATTENTION, INDEX, ORDER, ORGAN_TITLE, TONE, ZONES_TITLE } from './shared'
 import { nextAppointment } from './store'
 import { fmtWhen } from './time'
 
@@ -56,19 +56,20 @@ const uid = () => Math.random().toString(36).slice(2, 9)
 // ——— Распознавание темы ———
 
 const WORDS: [SystemId, RegExp][] = [
+  ['hematopoietic', /костн\S* мозг|кроветвор/],
   ['cardiovascular', /сердц|сосуд|давлен|пульс|холестер|лпнп|липид|кардио/],
   ['nervous', /мозг|нерв|сон|сна|сплю|стресс|вср|устал|голов/],
-  ['endocrine', /гормон|глюкоз|сахар|поджелуд|эндокрин|инсулин|талия|диабет/],
+  ['endocrine', /гормон|глюкоз|сахар|поджелуд|эндокрин|инсулин|талия|диабет|щитовид/],
   ['musculoskeletal', /спин|позвон|поясниц|сустав|кост|шаг|опор|сидя/],
   ['digestive', /жкт|желуд|кишеч|печен|пищевар|стул|ужин|еда/],
-  ['hematopoietic', /кров|гемоглоб|феррит|желез/],
+  ['hematopoietic', /кров|гемоглоб|феррит|железо|анеми/],
   ['respiratory', /дыхан|лёгк|легк|одышк|кашл|spo/],
   ['urinary', /почк|моч|отёк|отек|креатин/],
   ['integumentary', /кож|витамин d/],
   ['immune', /иммун|орви|простуд|антибиот/],
   ['lymphatic', /лимф|узл|селезён/],
   ['sensory', /зрен|слух|глаз|ух[оа]/],
-  ['reproductive', /репродукт|гинек|уролог/],
+  ['reproductive', /репродукт|простат|мужск/],
 ]
 
 function topicOf(q: string): BodySystem | null {
@@ -105,8 +106,8 @@ function answer(q: string, about: SystemId | null): Omit<AiMsg, 'id' | 'from'> {
   if (/индекс|балл|64|общ(ая|ую) картин/.test(text)) {
     const top = ORDER.slice(0, 3)
     return {
-      text: `Индекс здоровья — ${INDEX} из 100: «${TONE.toLowerCase()}». Это средний «запас» по всем 13 системам. Сильнее всего его тянут вниз три зоны:`,
-      points: top.map((s) => `${ORGAN_TITLE[s.id]} — ${s.risk} из 100, ${RISK_LABEL[levelOf(s.risk)].toLowerCase()} риск`),
+      text: `Индекс здоровья — ${INDEX} из 100: «${TONE.toLowerCase()}». Это средний «запас» по всем 13 системам. Сильнее всего его тянут вниз три системы:`,
+      points: top.map((s) => `${ORGAN_TITLE[s.id]} — риск ${s.risk} из 100, ${RISK_LABEL[levelOf(s.risk)].toLowerCase()}`),
       facts: ['Индекс не диагноз: он показывает, с чего начать разговор с врачом.'],
       actions: [{ label: 'Как считается индекс', to: '#/home/index' }, { label: 'Открыть атлас', to: '#/atlas' }],
     }
@@ -150,16 +151,15 @@ function answer(q: string, about: SystemId | null): Omit<AiMsg, 'id' | 'from'> {
   if (topic) {
     const level = levelOf(topic.risk)
     return {
-      text: `«${ORGAN_TITLE[topic.id]}» — ${topic.risk} из 100, ${RISK_LABEL[level].toLowerCase()} риск. ${topic.summary} ${topic.meaning}`,
+      text: `«${ORGAN_TITLE[topic.id]}» — риск ${topic.risk} из 100, ${RISK_LABEL[level].toLowerCase()}. ${topic.summary} ${topic.meaning}`,
       facts: facts(topic),
       actions: systemActions(topic),
     }
   }
 
-  const top = ORDER.slice(0, 3)
   return {
-    text: 'Я отвечаю по данным вашего атласа: показателям, анализам и записям. Сейчас главное — три зоны:',
-    points: top.map((s) => `${ORGAN_TITLE[s.id]}: ${s.summary.charAt(0).toLowerCase()}${s.summary.slice(1)}`),
+    text: `Я отвечаю по данным вашего атласа: показателям, анализам и записям. Сейчас главное — ${ZONES_TITLE.toLowerCase()}:`,
+    points: ATTENTION.map((s) => `${ORGAN_TITLE[s.id]}: ${s.summary.charAt(0).toLowerCase()}${s.summary.slice(1)}`),
     actions: [{ label: 'Открыть атлас', to: '#/atlas' }],
   }
 }
